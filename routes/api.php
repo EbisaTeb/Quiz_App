@@ -5,8 +5,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\GradingController;
 use App\Http\Controllers\QuestionController;
-use App\Http\Controllers\QuizController;
-use App\Http\Controllers\RoleController;
+use App\Http\Controllers\QuizController;;
+
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\SubmissionController;
@@ -25,7 +25,6 @@ Route::middleware('auth:api', 'approved')->group(function () {
 
     // Admin routes
     Route::middleware('role:admin')->group(function () {
-        Route::get('/teachers', [TeacherController::class, "test"]);
 
         // User management
         Route::get('/admin/users', [AdminController::class, 'getAllUsers']);
@@ -61,9 +60,6 @@ Route::middleware('auth:api', 'approved')->group(function () {
 
     // Teacher routes
     Route::middleware('role:teacher')->group(function () {
-        // Route::get('/test', function () {
-        //     return response()->json(['message' => 'API works!']);
-        // });
         Route::apiResource('quizzes', QuizController::class);
         Route::post('/quizzes/{quiz}/questions', [QuestionController::class, 'store']);
         Route::post('/quizzes/{quiz}/assign-students', [QuizController::class, 'assignStudents']);

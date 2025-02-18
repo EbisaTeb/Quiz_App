@@ -11,7 +11,7 @@ import Navbar from './Navbar.vue'
         <!-- content  -->
         <main  class="p-4">
           <div class="p-4 rounded bg-white ">
-        <h1>hello world</h1>
+          <h1>well come student</h1>
           </div>
         </main>
       </div> 

@@ -35,12 +35,12 @@ class StudentController extends Controller
     {
         $this->authorize('manageStudents', User::class);
         $search = $request->input('search');
-        $teacher = User::whereHas('roles', function ($query) {
+        $students = User::whereHas('roles', function ($query) {
             $query->where('name', 'student');
         })
             ->where('email', 'like', '%' . $search . '%')
             ->get();
-        return response()->json($teacher);
+        return response()->json($students);
     }
 
     // Store a newly created resource in storage.
@@ -49,8 +49,8 @@ class StudentController extends Controller
         $this->authorize('manageStudents', User::class);
 
         try {
-            $teacherSubjectClasses = StudentSubject::with(['subject', 'class', 'student'])->get();
-            return response()->json($teacherSubjectClasses, 200);
+            $studentSubjectClasses = StudentSubject::with(['subject', 'class', 'student'])->get();
+            return response()->json($studentSubjectClasses, 200);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
