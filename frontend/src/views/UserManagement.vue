@@ -131,7 +131,7 @@ onMounted(() => {
     <div>
         <div class="card">
           <Toast/>
-            <Toolbar class="mb-6">
+            <Toolbar class="mb-1">
                 <template #start>
                     <Button label="Approved" icon="pi pi-verified" severity="success" outlined @click="confirmApprovedUsers" :disabled="!selectedUsers || !selectedUsers.length" />
                 </template>
@@ -149,14 +149,14 @@ onMounted(() => {
                 dataKey="id"
                 :loading="isLoading"
                 :paginator="true"
-                :rows="10"
+                :rows="5"
                 :filters="filters"
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 :rowsPerPageOptions="[5, 10, 25]"
                 currentPageReportTemplate="Showing {first} to {last} of {totalRecords} users"
             >
                 <template #header>
-                    <div class="flex flex-wrap gap-2 items-center justify-between">
+                    <div class="flex flex-wrap  items-center justify-between">
                         <h4 class="m-0">Manage User</h4>
                         <IconField>
                             <InputIcon>

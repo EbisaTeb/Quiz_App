@@ -84,7 +84,7 @@ onMounted(() => {
     <div class="flex flex-wrap justify-center items-center">
     <div class="card">
         <Toast />
-        <Toolbar class="mb-4">
+        <Toolbar class="mb-2">
             <template #start>
                 <Button label="Add Subject" icon="pi pi-plus" class="mr-2" @click="openNew" />
             </template>
@@ -96,16 +96,12 @@ onMounted(() => {
             :loading="isLoading"
             dataKey="id"
             :paginator="true"
-            :rows="10"
+            :rows="5"
             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
             :rowsPerPageOptions="[5, 10, 25]"
             currentPageReportTemplate="Showing {first} to {last} of {totalRecords} subjects"
         >
-        <template #header>
-                    <div class="flex flex-wrap gap-2 items-center justify-between">
-                        <h4 class="m-0">Subject management</h4>
-                    </div>
-                </template>
+
             <Column field="name" header="Name" sortable></Column>
             <Column :exportable="false" header="Action">
                 <template #body="slotProps">

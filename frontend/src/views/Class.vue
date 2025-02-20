@@ -80,7 +80,7 @@ onMounted(() => {
 <template>
   <div class="card">
     <Toast />
-    <Toolbar class="mb-4">
+    <Toolbar class="mb-2">
       <template #start>
         <Button label="Add Class" icon="pi pi-plus" class="mr-2" @click="openNew" />
       </template>
@@ -92,17 +92,12 @@ onMounted(() => {
       :loading="isLoading"
       dataKey="id"
       :paginator="true"
-      :rows="10"
+      :rows="5"
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
       :rowsPerPageOptions="[5, 10, 25]"
       currentPageReportTemplate="Showing {first} to {last} of {totalRecords} classes"
     >
-      <template #header>
-        <div class="flex flex-wrap gap-2 items-center justify-between">
-          <h4 class="m-0">Class management</h4>
-        </div>
-      </template>
-      <Column field="name" header="Name" sortable></Column>
+      <Column field="name" header="Section" sortable></Column>
       <Column field="grade_level" header="Grade Level" sortable></Column>
       <Column field="year" header="Year" sortable></Column>
       <Column field="students_count" header="Student" sortable></Column>

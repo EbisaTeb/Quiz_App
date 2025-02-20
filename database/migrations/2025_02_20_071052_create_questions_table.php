@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::create('questions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('quiz_id')->constrained()->onDelete('cascade');
-            $table->text('question_text');
             $table->enum('type', ['mcq', 'short_answer', 'matching']);
-            $table->json('matching_pairs')->nullable(); // Correct pairs for matching type
-            $table->text('keywords')->nullable(); // For short-answer grading (e.g., "PHP, OOP")
-            $table->integer('points'); // Points for this question
+            $table->text('content');
+            $table->json('options')->nullable();
+            $table->string('correct_answer');
+            $table->float('marks', 8, 2)->unsigned();
             $table->timestamps();
         });
     }

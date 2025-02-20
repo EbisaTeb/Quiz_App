@@ -60,10 +60,17 @@ Route::middleware('auth:api', 'approved')->group(function () {
 
     // Teacher routes
     Route::middleware('role:teacher')->group(function () {
-        Route::apiResource('quizzes', QuizController::class);
-        Route::post('/quizzes/{quiz}/questions', [QuestionController::class, 'store']);
-        Route::post('/quizzes/{quiz}/assign-students', [QuizController::class, 'assignStudents']);
-        Route::post('/submissions/{submission}/grade', [GradingController::class, 'gradeSubmission']);
+        Route::apiResource('quizzes', QuizController::class)->except(['index', 'show']);
+        Route::get('/quizzes/teacher-assignments/{userId}', [QuizController::class, 'getTeacherAssignments']);
+        Route::get('/quizzes', [QuizController::class, 'index']);
+        Route::get('/quizzes/{quiz}', [QuizController::class, 'show']);
+        // Question routes
+        Route::get('/quizzes/teacher-quizzes', [QuestionController::class, 'getTeacherQuizzes']);
+        Route::post('/quizzes/add-questions', [QuestionController::class, 'addQuestions']);
+
+        // Route::post('/quizzes/{quiz}/questions', [QuestionController::class, 'store']);
+        // Route::post('/quizzes/{quiz}/assign-students', [QuizController::class, 'assignStudents']);
+        // Route::post('/submissions/{submission}/grade', [GradingController::class, 'gradeSubmission']);
     });
 
     // Student routes

@@ -30,7 +30,7 @@ function logout() {
 </script>
 
 <template>
-  <header class="h-16 p-3 flex justify-between items-center shadow bg-white">
+  <header class="h-14 p-2 flex justify-between items-center shadow bg-white">
     <!-- Toggle Sidebar Button -->
     <Button 
       icon="pi pi-bars" 

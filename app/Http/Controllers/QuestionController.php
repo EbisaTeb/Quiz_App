@@ -2,43 +2,72 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Question;
+use App\Http\Controllers\Controller;
 use App\Models\Quiz;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class QuestionController extends Controller
 {
-    public function store(Request $request, Quiz $quiz)
+    public function getTeacherQuizzes()
     {
-        $this->authorize('update', $quiz);
+        try {
+            $quizzes = Quiz::where('teacher_id', Auth::id())->get();
 
-        $validated = $request->validate([
-            'question_text' => 'required|string',
-            'type' => 'required|in:mcq,short_answer,matching',
-            'points' => 'required|integer|min:1',
-            'options' => 'required_if:type,mcq|array',
-            'matching_pairs' => 'required_if:type,matching|json',
-            'keywords' => 'nullable|string'
-        ]);
+            if ($quizzes->isEmpty()) {
+                return response()->json(['message' => 'No quizzes found'], 404);
+            }
 
-        $question = $quiz->questions()->create([
-            'question_text' => $validated['question_text'],
-            'type' => $validated['type'],
-            'points' => $validated['points'],
-            'matching_pairs' => $validated['matching_pairs'] ?? null,
-            'keywords' => $validated['keywords'] ?? null
-        ]);
+            return response()->json($quizzes);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'An error occurred', 'error' => $e->getMessage()], 500);
+        }
+    }
 
-        if ($validated['type'] === 'mcq') {
-            foreach ($validated['options'] as $option) {
-                $question->options()->create([
-                    'option_text' => $option['text'],
-                    'is_correct' => $option['is_correct']
+    public function addQuestions(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'quiz_id' => ['required', Rule::exists('quizzes', 'id')->where('teacher_id', Auth::id())],
+                'questions' => 'required|array|min:1',
+                'questions.*.type' => ['required', Rule::in(['mcq', 'short_answer', 'matching'])],
+                'questions.*.content' => 'required|string|max:500',
+                'questions.*.options' => 'nullable|array', // Only for MCQs
+                'questions.*.correct_answer' => ['required', function ($attribute, $value, $fail) {
+                    if (!is_string($value) && !is_array($value)) {
+                        $fail("The $attribute field must be a string or an array.");
+                    }
+                }],
+                'questions.*.marks' => 'required|integer|min:1',
+            ]);
+
+            $quiz = Quiz::findOrFail($validated['quiz_id']);
+
+            foreach ($validated['questions'] as $question) {
+                $quiz->questions()->create([
+                    'type' => $question['type'],
+                    'content' => $question['content'],
+                    'options' => isset($question['options']) ? json_encode($question['options']) : null, // ✅ Ensure key exists
+                    'correct_answer' => isset($question['correct_answer'])
+                        ? (is_array($question['correct_answer']) ? json_encode($question['correct_answer']) : $question['correct_answer'])
+                        : null, // ✅ Ensure key exists
+                    'marks' => $question['marks']
                 ]);
             }
-        }
 
-        return response()->json($question->load('options'), 201);
+            return response()->json($quiz->load('questions'), 201);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Quiz not found'], 404);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'An error occurred', 'error' => $e->getMessage()], 500);
+        }
     }
 }

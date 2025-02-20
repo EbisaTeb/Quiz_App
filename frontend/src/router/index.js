@@ -13,6 +13,8 @@ import Subject from "@/views/Subject.vue";
 import AddStuddent from "@/views/AddStuddent.vue";
 import AddTeacher from "@/views/AddTeacher.vue";
 import Studentlayout from "@/components/Studentlayout.vue";
+import Quiz from "@/views/Quiz.vue";
+import Question from "@/views/Question.vue";
 
 
 
@@ -30,6 +32,8 @@ const routes = [
       { path: "usermanage", name: "app.usermanage", component: UserManagement},
       { path: "addstudent", name: "app.addstudent", component: AddStuddent},
       { path: "addteacher", name: "app.addteacher", component: AddTeacher},
+      { path: "quiz", name: "app.quiz", component: Quiz},
+      { path: "question", name: "app.question", component: Question},
     ],
   },
   {path:"/student",name:"student",component:Studentlayout},
@@ -50,23 +54,15 @@ router.beforeEach(async (to, from, next) => {
   
   // Perform auth check to update the store's state
   await store.authCheck();
-  
-  const isStudent = store.user?.roles.map(role => role.name).includes("student");
 
   if (to.meta.requiresAuth && !store.isAuthenticated) {
     next({ name: "login" });
-  } 
-  else if (isStudent && to.name !== "student") {
-    // Redirect students to the student route
-    next({ name: "student" });
-  }
-  else if (to.meta.requiresGuest && store.isAuthenticated) {
+  } else if (to.meta.requiresGuest && store.isAuthenticated) {
     next({ name: "app.dashboard" });
   } else {
     next();
   }
 });
-
 
 
 // if (store.user?.roles.map(role => role.name).join() === "student" && to.name !== "student") {

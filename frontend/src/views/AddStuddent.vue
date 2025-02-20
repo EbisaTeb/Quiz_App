@@ -158,7 +158,7 @@ function showError(message) {
     <div>
         <div class="card">
             <Toast />
-            <Toolbar class="mb-6">
+            <Toolbar class="mb-2">
                 <template #start>
                     <Button label="Assignment Student" icon="pi pi-plus" class="mr-2" @click="openNew" />
                 </template>
@@ -178,7 +178,7 @@ function showError(message) {
                 dataKey="id"
                 :loading="isLoading"
                 :paginator="true"
-                :rows="10"
+                :rows="5"
                 :filters="filters"
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 :rowsPerPageOptions="[5, 10, 25]"

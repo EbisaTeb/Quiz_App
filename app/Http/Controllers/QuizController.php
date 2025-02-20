@@ -3,222 +3,129 @@
 namespace App\Http\Controllers;
 
 use App\Models\Quiz;
-use App\Models\User;
+use App\Models\TeacherSubjectClass;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
-use Illuminate\Auth\Access\AuthorizationException;
-use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Validation\Rule;
 
 class QuizController extends Controller
 {
-    public function index()
+    /**
+     * Fetch classes and subjects where user_id == teacher_id
+     */
+    public function getTeacherAssignments($userId)
     {
-        try {
-            $user = Auth::user();
+        $assignments = TeacherSubjectClass::with(['class', 'subject'])
+            ->where('teacher_id', $userId)
+            ->get();
 
-            return Quiz::when($user->hasRole('teacher'), function ($query) {
-                return $query->where('created_by', Auth::id())
-                    ->withCount(['questions', 'students', 'submissions']);
-            })
-                ->when($user->hasRole('admin'), function ($query) {
-                    return $query->with(['creator', 'students', 'submissions']);
-                })
-                ->paginate(10);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to retrieve quizzes',
-                'error' => $e->getMessage()
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        if ($assignments->isEmpty()) {
+            return response()->json(['message' => 'No assignments found'], 404);
         }
+
+        return response()->json($assignments);
     }
 
+    /**
+     * List all quizzes
+     */
+    public function index(Request $request)
+    {
+        $quizzes = Quiz::query()
+            ->when(Auth::user()->hasRole('teacher'), fn($q) => $q->where('teacher_id', Auth::user()->id))
+            ->when(Auth::user()->hasRole('student'), fn($q) => $q->whereHas('class.students', fn($q) => $q->where('student_id', Auth::user()->id)))
+            ->with(['class', 'subject'])
+            ->paginate(10);
+
+        return response()->json($quizzes);
+    }
+
+    /**
+     * Store a new quiz
+     */
     public function store(Request $request)
     {
-        try {
-            $validated = $request->validate([
-                'title' => 'required|string|max:255',
-                'description' => 'nullable|string',
-                'start_time' => 'required|date|after:now',
-                'end_time' => 'required|date|after:start_time',
-                'duration' => 'required|integer|min:1',
-                'student_ids' => 'sometimes|array',
-                'student_ids.*' => 'exists:users,id'
-            ]);
-
-            return DB::transaction(function () use ($validated) {
-                try {
-                    $quiz = Quiz::create($validated + [
-                        'created_by' => Auth::id(),
-                        'is_published' => false
-                    ]);
-
-                    if (isset($validated['student_ids'])) {
-                        $this->validateStudents($validated['student_ids']);
-                        $quiz->students()->sync($validated['student_ids']);
-                    }
-
-                    return response()->json($quiz->load('students'), Response::HTTP_CREATED);
-                } catch (\Exception $e) {
-                    DB::rollBack();
-                    return response()->json([
-                        'message' => 'Failed to create quiz',
-                        'error' => $e->getMessage()
-                    ], Response::HTTP_INTERNAL_SERVER_ERROR);
-                }
-            });
-        } catch (ValidationException $e) {
-            return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $e->errors()
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Server error',
-                'error' => $e->getMessage()
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        // Ensure only teachers can create quizzes
+        if (!Auth::user()->hasRole('teacher')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'class_id' => [
+                'required',
+                Rule::exists('teacher_subject_class', 'class_id')->where('teacher_id', Auth::user()->id)
+            ],
+            'subject_id' => [
+                'required',
+                Rule::exists('teacher_subject_class', 'subject_id')->where('teacher_id', Auth::id())
+            ],
+            'time_limit' => 'required|integer|min:1',
+            'start_time' => 'required|date',
+            'end_time' => 'required|date|after:start_time',
+        ]);
+
+        // Automatically set teacher_id from authenticated user
+        $quiz = Quiz::create([
+            'title' => $validated['title'],
+            'teacher_id' => Auth::id(),
+            'class_id' => $validated['class_id'],
+            'subject_id' => $validated['subject_id'],
+            'start_time' => $validated['start_time'],
+            'end_time' => $validated['end_time'],
+            'time_limit' => $validated['time_limit'],
+        ]);
+
+        return response()->json($quiz->load('questions'), 201);
     }
 
+    /**
+     * Show a specific quiz
+     */
     public function show(Quiz $quiz)
     {
-        try {
-            $this->authorize('view', $quiz);
-
-            return $quiz->load([
-                'questions.options',
-                'students:id,name',
-                'submissions' => fn($q) => $q->with('student:id,name')
-            ]);
-        } catch (AuthorizationException $e) {
-            return response()->json([
-                'message' => 'Unauthorized to view this quiz'
-            ], Response::HTTP_FORBIDDEN);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to retrieve quiz',
-                'error' => $e->getMessage()
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
+        $this->authorize('view', $quiz);
+        return response()->json($quiz->load(['questions', 'class', 'subject']));
     }
 
+    /**
+     * Update a specific quiz
+     */
     public function update(Request $request, Quiz $quiz)
     {
-        try {
-            $this->authorize('update', $quiz);
+        $this->authorize('update', $quiz);
 
-            $validated = $request->validate([
-                'title' => 'sometimes|string|max:255',
-                'description' => 'nullable|string',
-                'start_time' => 'sometimes|date|after:now',
-                'end_time' => 'sometimes|date|after:start_time',
-                'duration' => 'sometimes|integer|min:1',
-                'student_ids' => 'sometimes|array',
-                'student_ids.*' => 'exists:users,id'
-            ]);
+        $validated = $request->validate([
+            'title' => 'sometimes|required|string|max:255',
+            'class_id' => [
+                'sometimes',
+                'required',
+                Rule::exists('teacher_subject_class', 'class_id')->where('teacher_id', Auth::user()->id)
+            ],
+            'subject_id' => [
+                'sometimes',
+                'required',
+                Rule::exists('teacher_subject_class', 'subject_id')->where('teacher_id', Auth::id())
+            ],
+            'time_limit' => 'sometimes|required|integer|min:1',
+            'start_time' => 'sometimes|required|date',
+            'end_time' => 'sometimes|required|date|after:start_time',
+        ]);
 
-            return DB::transaction(function () use ($quiz, $validated) {
-                try {
-                    $quiz->update($validated);
+        $quiz->update($validated);
 
-                    if (isset($validated['student_ids'])) {
-                        $this->validateStudents($validated['student_ids']);
-                        $quiz->students()->sync($validated['student_ids']);
-                    }
-
-                    return response()->json($quiz->fresh()->load('students'));
-                } catch (\Exception $e) {
-                    DB::rollBack();
-                    return response()->json([
-                        'message' => 'Failed to update quiz',
-                        'error' => $e->getMessage()
-                    ], Response::HTTP_INTERNAL_SERVER_ERROR);
-                }
-            });
-        } catch (AuthorizationException $e) {
-            return response()->json([
-                'message' => 'Unauthorized to update this quiz'
-            ], Response::HTTP_FORBIDDEN);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $e->errors()
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Server error',
-                'error' => $e->getMessage()
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
+        return response()->json($quiz->load('questions'), 200);
     }
 
+    /**
+     * Delete a specific quiz
+     */
     public function destroy(Quiz $quiz)
     {
-        try {
-            $this->authorize('delete', $quiz);
-            $quiz->delete();
-            return response([
-                'message' => 'Quiz deleted successfully'
-            ]);
-        } catch (AuthorizationException $e) {
-            return response()->json([
-                'message' => 'Unauthorized to delete this quiz'
-            ], Response::HTTP_FORBIDDEN);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to delete quiz',
-                'error' => $e->getMessage()
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-    }
+        $this->authorize('delete', $quiz);
 
-    public function togglePublish(Quiz $quiz)
-    {
-        try {
-            $this->authorize('update', $quiz);
+        $quiz->delete();
 
-            throw_if(
-                $quiz->questions()->count() < 1,
-                new \RuntimeException('Cannot publish quiz without questions')
-            );
-
-            $quiz->update(['is_published' => !$quiz->is_published]);
-
-            return response()->json([
-                'message' => $quiz->is_published
-                    ? 'Quiz published successfully'
-                    : 'Quiz unpublished successfully'
-            ]);
-        } catch (AuthorizationException $e) {
-            return response()->json([
-                'message' => 'Unauthorized to modify this quiz'
-            ], Response::HTTP_FORBIDDEN);
-        } catch (\RuntimeException $e) {
-            return response()->json([
-                'message' => $e->getMessage()
-            ], Response::HTTP_BAD_REQUEST);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to toggle quiz status',
-                'error' => $e->getMessage()
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    private function validateStudents(array $studentIds)
-    {
-        try {
-            $validStudents = Auth::user()->students()
-                ->whereIn('id', $studentIds)
-                ->pluck('id')
-                ->toArray();
-
-            if (count(array_diff($studentIds, $validStudents)) > 0) {
-                throw new \InvalidArgumentException('Contains invalid student assignments');
-            }
-        } catch (\InvalidArgumentException $e) {
-            abort(Response::HTTP_UNPROCESSABLE_ENTITY, $e->getMessage());
-        }
+        return response()->json(['message' => 'Quiz deleted successfully'], 200);
     }
 }

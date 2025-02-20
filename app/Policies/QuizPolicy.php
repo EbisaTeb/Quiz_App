@@ -3,7 +3,7 @@
 namespace App\Policies;
 
 use App\Models\Quiz;
-use App\Models\Submission;
+use App\Models\StudentSubject;
 use App\Models\User;
 
 class QuizPolicy
@@ -11,33 +11,38 @@ class QuizPolicy
     /**
      * Create a new policy instance.
      */
-    public function grade(User $user, Submission $submission)
-    {
-        return $submission->quiz->created_by === $user->id;
-    }
-    public function update(User $user, Quiz $quiz)
-    {
-        return $user->id === $quiz->created_by;
-    }
-
-    public function delete(User $user, $quiz)
-    {
-        return $user->id === $quiz->created_by;
-    }
     public function create(User $user)
     {
-        return $user->subjects()->exists() &&
-            $user->classes()->exists();
+        return $user->hasRole('teacher');
     }
 
-    // public function create(User $user)
-    // {
-    //     return $user->hasRole('teacher') && 
-    //            $user->taughtSubjects()->exists();
-    // }
+    public function update(User $user, Quiz $quiz)
+    {
+        $teacherSubjectClass = $quiz->teacherSubjectClass;
+        return $teacherSubjectClass && $user->id === $teacherSubjectClass->teacher_id;
+    }
 
-    // public function update(User $user, Quiz $quiz)
-    // {
-    //     return $user->id === $quiz->created_by;
-    // }
+    public function view(User $user, Quiz $quiz)
+    {
+        $teacherSubjectClass = $quiz->teacherSubjectClass;
+
+        if ($user->hasRole('teacher')) {
+            return $teacherSubjectClass && $user->id === $teacherSubjectClass->teacher_id;
+        }
+
+        if ($user->hasRole('student')) {
+            return $teacherSubjectClass && StudentSubject::where('student_id', $user->id)
+                ->where('class_id', $teacherSubjectClass->class_id)
+                ->where('subject_id', $teacherSubjectClass->subject_id)
+                ->exists();
+        }
+
+        return true; // Admin
+    }
+
+    public function delete(User $user, Quiz $quiz)
+    {
+        $teacherSubjectClass = $quiz->teacherSubjectClass;
+        return $teacherSubjectClass && $user->id === $teacherSubjectClass->teacher_id;
+    }
 }
