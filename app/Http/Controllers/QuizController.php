@@ -13,17 +13,22 @@ class QuizController extends Controller
     /**
      * Fetch classes and subjects where user_id == teacher_id
      */
-    public function getTeacherAssignments($userId)
+    public function getTeacherAssignments()
     {
-        $assignments = TeacherSubjectClass::with(['class', 'subject'])
-            ->where('teacher_id', $userId)
-            ->get();
+        $teacherId = Auth::id();
 
-        if ($assignments->isEmpty()) {
-            return response()->json(['message' => 'No assignments found'], 404);
-        }
+        $data = TeacherSubjectClass::where('teacher_id', $teacherId)
+            ->with(['classGroup', 'subject'])
+            ->get()
+            ->groupBy('subject_id')
+            ->map(function ($items) {
+                return [
+                    'subject' => $items->first()->subject,
+                    'classes' => $items->pluck('classGroup')
+                ];
+            })->values();
 
-        return response()->json($assignments);
+        return response()->json($data);
     }
 
     /**
@@ -54,7 +59,10 @@ class QuizController extends Controller
             'title' => 'required|string|max:255',
             'class_id' => [
                 'required',
-                Rule::exists('teacher_subject_class', 'class_id')->where('teacher_id', Auth::user()->id)
+                'array',
+                Rule::exists('teacher_subject_class', 'class_id')
+                    ->where('teacher_id', Auth::id())
+                    ->where('subject_id', $request->subject_id)
             ],
             'subject_id' => [
                 'required',
