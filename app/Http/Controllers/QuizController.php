@@ -13,22 +13,17 @@ class QuizController extends Controller
     /**
      * Fetch classes and subjects where user_id == teacher_id
      */
-    public function getTeacherAssignments()
+    public function getTeacherAssignments($userId)
     {
-        $teacherId = Auth::id();
+        $assignments = TeacherSubjectClass::with(['class', 'subject'])
+            ->where('teacher_id', $userId)
+            ->get();
 
-        $data = TeacherSubjectClass::where('teacher_id', $teacherId)
-            ->with(['classGroup', 'subject'])
-            ->get()
-            ->groupBy('subject_id')
-            ->map(function ($items) {
-                return [
-                    'subject' => $items->first()->subject,
-                    'classes' => $items->pluck('classGroup')
-                ];
-            })->values();
+        if ($assignments->isEmpty()) {
+            return response()->json(['message' => 'No assignments found'], 404);
+        }
 
-        return response()->json($data);
+        return response()->json($assignments);
     }
 
     /**
@@ -60,9 +55,7 @@ class QuizController extends Controller
             'class_id' => [
                 'required',
                 'array',
-                Rule::exists('teacher_subject_class', 'class_id')
-                    ->where('teacher_id', Auth::id())
-                    ->where('subject_id', $request->subject_id)
+                Rule::exists('teacher_subject_class', 'class_id')->where('teacher_id', Auth::user()->id)
             ],
             'subject_id' => [
                 'required',
@@ -73,18 +66,21 @@ class QuizController extends Controller
             'end_time' => 'required|date|after:start_time',
         ]);
 
-        // Automatically set teacher_id from authenticated user
-        $quiz = Quiz::create([
-            'title' => $validated['title'],
-            'teacher_id' => Auth::id(),
-            'class_id' => $validated['class_id'],
-            'subject_id' => $validated['subject_id'],
-            'start_time' => $validated['start_time'],
-            'end_time' => $validated['end_time'],
-            'time_limit' => $validated['time_limit'],
-        ]);
+        $quizzes = [];
+        foreach ($validated['class_id'] as $classId) {
+            $quiz = Quiz::create([
+                'title' => $validated['title'],
+                'teacher_id' => Auth::id(),
+                'class_id' => $classId,
+                'subject_id' => $validated['subject_id'],
+                'start_time' => $validated['start_time'],
+                'end_time' => $validated['end_time'],
+                'time_limit' => $validated['time_limit'],
+            ]);
+            $quizzes[] = $quiz->load('questions');
+        }
 
-        return response()->json($quiz->load('questions'), 201);
+        return response()->json($quizzes, 201);
     }
 
     /**
@@ -95,7 +91,7 @@ class QuizController extends Controller
         $this->authorize('view', $quiz);
         return response()->json($quiz->load(['questions', 'class', 'subject']));
     }
-
+    // dd($request->all());
     /**
      * Update a specific quiz
      */
@@ -108,6 +104,7 @@ class QuizController extends Controller
             'class_id' => [
                 'sometimes',
                 'required',
+                'array', // Accept multiple class IDs
                 Rule::exists('teacher_subject_class', 'class_id')->where('teacher_id', Auth::user()->id)
             ],
             'subject_id' => [
@@ -120,9 +117,25 @@ class QuizController extends Controller
             'end_time' => 'sometimes|required|date|after:start_time',
         ]);
 
-        $quiz->update($validated);
+        // Delete existing quiz if necessary (optional)
+        $quiz->delete();
 
-        return response()->json($quiz->load('questions'), 200);
+        // Store new quizzes for each class_id
+        $updatedQuizzes = [];
+        foreach ($validated['class_id'] as $classId) {
+            $newQuiz = Quiz::create([
+                'title' => $validated['title'] ?? $quiz->title,
+                'teacher_id' => Auth::id(),
+                'class_id' => $classId,
+                'subject_id' => $validated['subject_id'] ?? $quiz->subject_id,
+                'start_time' => $validated['start_time'] ?? $quiz->start_time,
+                'end_time' => $validated['end_time'] ?? $quiz->end_time,
+                'time_limit' => $validated['time_limit'] ?? $quiz->time_limit,
+            ]);
+            $updatedQuizzes[] = $newQuiz->load('questions');
+        }
+
+        return response()->json($updatedQuizzes, 200);
     }
 
     /**

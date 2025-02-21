@@ -27,6 +27,12 @@ class Quiz extends Model
         'published_by',
     ];
 
+    protected $casts = [
+        'start_time' => 'datetime',
+        'end_time' => 'datetime',
+        'published_at' => 'datetime',
+    ];
+
     /**
      * Get the teacher that owns the quiz.
      */
