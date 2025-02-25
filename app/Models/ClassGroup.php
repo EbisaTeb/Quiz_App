@@ -22,6 +22,10 @@ class ClassGroup extends Model
             ->withPivot('teacher_id');
     }
 
+    public function quizzes()
+    {
+        return $this->belongsToMany(Quiz::class, 'quiz_class', 'class_id', 'quiz_id');
+    }
 
     public function teachers()
     {

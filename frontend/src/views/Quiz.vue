@@ -112,7 +112,7 @@ function editQuiz(quiz) {
     currentQuiz.value = {
         ...quiz,
         subject_id: quiz.subject_id,
-        class_ids: [quiz.class_id], // Convert to array for MultiSelect
+        class_ids: quiz.classes.map(c => c.id),// Convert to array for MultiSelect
         start_time: new Date(quiz.start_time),
         end_time: new Date(quiz.end_time)
     };
@@ -125,7 +125,7 @@ async function saveQuiz() {
         const payload = {
             title: currentQuiz.value.title,
             subject_id: currentQuiz.value.subject_id,
-            class_id: currentQuiz.value.class_ids,
+            class_ids: currentQuiz.value.class_ids, 
             time_limit: currentQuiz.value.time_limit,
             start_time: currentQuiz.value.start_time.toISOString(),
             end_time: currentQuiz.value.end_time.toISOString(),
@@ -206,7 +206,11 @@ function showError(message) {
             >
                 <Column field="title" header="Title" sortable />
                 <Column field="subject.name" header="Subject" sortable />
-                <Column field="class.name" header="Class" sortable />
+                <Column header="Class" sortable>
+                <template #body="{ data }">
+                    {{ data.classes.map(c => c.name).join(', ') }}
+                </template>
+            </Column>
                 <Column field="time_limit" header="Time Limit (min)" />
                 <Column field="start_time" header="Start Time">
                     <template #body="{ data }">

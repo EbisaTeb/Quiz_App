@@ -3,46 +3,49 @@
 namespace App\Policies;
 
 use App\Models\Quiz;
-use App\Models\StudentSubject;
 use App\Models\User;
 
 class QuizPolicy
 {
     /**
-     * Create a new policy instance.
+     * Determine whether the user can create a quiz.
      */
     public function create(User $user)
     {
         return $user->hasRole('teacher');
     }
 
+    /**
+     * Determine whether the user can update the quiz.
+     */
     public function update(User $user, Quiz $quiz)
     {
-        $teacherSubjectClass = $quiz->teacherSubjectClass;
-        return $teacherSubjectClass && $user->id === $teacherSubjectClass->teacher_id;
+        return $user->id === $quiz->teacher_id;
     }
 
+    /**
+     * Determine whether the user can view the quiz.
+     */
     public function view(User $user, Quiz $quiz)
     {
-        $teacherSubjectClass = $quiz->teacherSubjectClass;
-
         if ($user->hasRole('teacher')) {
-            return $teacherSubjectClass && $user->id === $teacherSubjectClass->teacher_id;
+            return $user->id === $quiz->teacher_id;
         }
 
         if ($user->hasRole('student')) {
-            return $teacherSubjectClass && StudentSubject::where('student_id', $user->id)
-                ->where('class_id', $teacherSubjectClass->class_id)
-                ->where('subject_id', $teacherSubjectClass->subject_id)
-                ->exists();
+            return $quiz->classes()->whereHas('students', function ($query) use ($user) {
+                $query->where('student_id', $user->id);
+            })->exists();
         }
 
         return true; // Admin
     }
 
+    /**
+     * Determine whether the user can delete the quiz.
+     */
     public function delete(User $user, Quiz $quiz)
     {
-        $teacherSubjectClass = $quiz->teacherSubjectClass;
-        return $teacherSubjectClass && $user->id === $teacherSubjectClass->teacher_id;
+        return $user->id === $quiz->teacher_id;
     }
 }
