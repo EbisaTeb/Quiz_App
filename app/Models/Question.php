@@ -14,7 +14,6 @@ class Question extends Model
         'quiz_id',
         'type',
         'content',
-        'options',
         'correct_answer',
         'marks',
     ];
@@ -22,5 +21,14 @@ class Question extends Model
     public function quiz()
     {
         return $this->belongsTo(Quiz::class);
+    }
+    public function options()
+    {
+        return $this->hasMany(QuestionOption::class);
+    }
+
+    public function matchingPairs()
+    {
+        return $this->hasMany(MatchingPair::class);
     }
 }

@@ -64,13 +64,14 @@ Route::middleware('auth:api', 'approved')->group(function () {
         Route::get('/quizzes/teacher-assignments/{userId}', [QuizController::class, 'getTeacherAssignments']);
         Route::get('/quizzes', [QuizController::class, 'index']);
         Route::get('/quizzes/{quiz}', [QuizController::class, 'show']);
+        Route::get('quizzes/{quiz}/questions', [QuestionController::class, 'getQuizQuestions']);
+        Route::get('quizzes/{quiz_id}/questions', [QuestionController::class, 'getQuizQuestions']);
         // Question routes
-        Route::get('/quizzes/teacher-quizzes', [QuestionController::class, 'getTeacherQuizzes']);
-        Route::post('/quizzes/add-questions', [QuestionController::class, 'addQuestions']);
-
-        // Route::post('/quizzes/{quiz}/questions', [QuestionController::class, 'store']);
-        // Route::post('/quizzes/{quiz}/assign-students', [QuizController::class, 'assignStudents']);
-        // Route::post('/submissions/{submission}/grade', [GradingController::class, 'gradeSubmission']);
+        Route::get('/quiz/teacher-quizzes', [QuestionController::class, 'getTeacherQuizzes']);
+        Route::post('/questions', [QuestionController::class, 'addQuestions']);
+        Route::put('/questions/{id}', [QuestionController::class, 'updateQuestion']);
+        Route::delete('/questions/{id}', [QuestionController::class, 'deleteQuestion']);
+        Route::get('/questions/{id}', [QuestionController::class, 'getQuestion']);
     });
 
     // Student routes
