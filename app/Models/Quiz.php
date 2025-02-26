@@ -50,7 +50,7 @@ class Quiz extends Model
         return $this->belongsTo(Subject::class, 'subject_id');
     }
 
-    public function PublishedBy()
+    public function publishedBy()
     {
         return $this->belongsTo(User::class, 'published_by');
     }
@@ -64,6 +64,7 @@ class Quiz extends Model
             ->where('subject_id', $this->subject_id)
             ->where('teacher_id', $this->teacher_id);
     }
+
     public function questions()
     {
         return $this->hasMany(Question::class);
@@ -73,10 +74,6 @@ class Quiz extends Model
     // {
     //     return $this->hasMany(QuizAttempt::class);
     // }
-
-
-
-
 
     // Get quizzes available to student based on StudentSubject
     public function scopeForStudent($query, User $student)

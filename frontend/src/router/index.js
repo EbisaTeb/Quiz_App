@@ -15,7 +15,7 @@ import AddTeacher from "@/views/AddTeacher.vue";
 import Studentlayout from "@/components/Studentlayout.vue";
 import Quiz from "@/views/Quiz.vue";
 import Question from "@/views/Question.vue";
-
+import QuizDetail from "../views/QuizDetail.vue";
 
 
 const routes = [
@@ -41,6 +41,7 @@ const routes = [
   { path: "/signup",name:'signup',component:Signup,meta:{requiresGuest:true}},
   { path: "/request-password", name: "requestPassword", component: RequestPassword, meta: { requiresGuest: true } },
   { path: "/reset-password/:token", name: "resetPassword", component: ResetPassword, meta: { requiresGuest: true } },
+  { path: "/quiz/:id", name: "quizDetail", component: QuizDetail, meta: { requiresAuth: true } },
   { path: "/:pathMatch(.*)*", name: "notfound", component: NotFound },
 ];
 

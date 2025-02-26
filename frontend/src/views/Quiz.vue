@@ -17,6 +17,7 @@ import Calendar from 'primevue/calendar';
 import InputNumber from 'primevue/inputnumber';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
+import { useRouter } from 'vue-router';
 
 
 
@@ -42,6 +43,8 @@ const currentQuiz = ref({
 const subjects = ref([]);
 const teacherAssignments = ref([]);
 const availableClasses = ref([]);
+
+const router = useRouter();
 
 onMounted(async () => {
     await fetchTeacherAssignments();
@@ -178,6 +181,10 @@ function showSuccess(message) {
 function showError(message) {
     toast.add({ severity: 'error', summary: 'Error', detail: message, life: 5000 });
 }
+
+function viewQuizDetail(quiz) {
+  router.push({ name: 'quizDetail', params: { id: quiz.id } });
+}
 </script>
 
 <template>
@@ -224,6 +231,7 @@ function showError(message) {
                 </Column>
                 <Column header="Actions">
                     <template #body="{ data }">
+                        <Button icon="pi pi-eye" @click="viewQuizDetail(data)" class="p-button-rounded p-button-text" />
                         <Button icon="pi pi-pencil" @click="editQuiz(data)" class="p-button-rounded p-button-text" />
                         <Button icon="pi pi-trash" @click="confirmDelete(data)" class="p-button-rounded p-button-text p-button-danger" />
                     </template>

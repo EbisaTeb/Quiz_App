@@ -15,6 +15,8 @@ import Column from 'primevue/column';
 
 
 const toast = useToast();
+const isLoading = ref(true);
+const isSumbmiting = ref(false);
 const selectedQuizId = ref(null);
 const teacherQuizzes = ref([]);
 const questions = ref([]);
@@ -64,6 +66,9 @@ onMounted(async () => {
  } catch (error) {
    showError('Failed to load quizzes');
  }
+ finally {
+   isLoading.value = false;
+ }
 });
 
 watch(selectedQuizId, async (newQuizId) => {
@@ -74,9 +79,12 @@ watch(selectedQuizId, async (newQuizId) => {
    } catch (error) {
      showError('Failed to load questions');
    }
+   finally {
+   isLoading.value = false;
+ }
  } else {
    questions.value = [];
- }
+ } 
 });
 
 function openQuestionDialog(question = null) {
@@ -131,6 +139,7 @@ function removePair(index) {
 
 async function saveQuestion(addAnother) {
  try {
+  isSumbmiting.value = true;
    const payload = {
      quiz_id: selectedQuizId.value,
      questions: [
@@ -152,6 +161,7 @@ async function saveQuestion(addAnother) {
      await axiosClient.post('/questions', payload);
      showSuccess('Question added successfully');
    }
+   
 
    if (addAnother) {
      resetQuestionForm();
@@ -160,7 +170,7 @@ async function saveQuestion(addAnother) {
    }
 
    // Refresh questions list
-   const response = await axiosClient.get(`/quizzes/${selectedQuizId.value}/questions`);
+   const response = await axiosClient.get(`/quizzes/${selectedQuizId.value}/questions`)
    questions.value = response.data;
  } catch (error) {
    if (error.response && error.response.status === 422) {
@@ -168,7 +178,9 @@ async function saveQuestion(addAnother) {
    } else {
      handleApiError(error, 'save question');
    }
- }
+ }finally{
+     isSumbmiting.value = false;
+   }
 }
 
 function confirmDeleteQuestion(question) {
@@ -178,6 +190,7 @@ function confirmDeleteQuestion(question) {
 
 async function deleteQuestion() {
  try {
+  isSumbmiting.value = true;
    await axiosClient.delete(`/questions/${editingQuestionId.value}`);
    showSuccess('Question deleted successfully');
    // Refresh questions list
@@ -187,6 +200,9 @@ async function deleteQuestion() {
  } catch (error) {
    handleApiError(error, 'delete question');
  }
+  finally {
+    isSumbmiting.value = false;
+  }
 }
 
 function showSuccess(message) {
@@ -223,22 +239,23 @@ function actionTemplate(rowData) {
       <div class="card">
         <h3>Manage Questions</h3>
         <div class="p-fluid grid">
-          <div class="field col-12 md:col-4">
+          <div class="field col-12 md:col-4 mt-2">
             <label>Select Quiz</label>
             <Select v-model="selectedQuizId" :options="teacherQuizzes" optionLabel="title" optionValue="id"
               placeholder="Select Quiz" class="w-full" />
           </div>
-          <div class="field col-12 md:col-2">
-            <Button label="Add Question" icon="pi pi-plus" @click="openQuestionDialog" :disabled="!selectedQuizId"
+          <div class="field col-12 md:col-2 mt-2">
+            <Button label="Add Question" :loading="isSumbmiting"  icon="pi pi-plus" @click="openQuestionDialog" :disabled="!selectedQuizId"
               class="w-full" />
           </div>
         </div>
-        
+      
         <!-- Questions Table -->
         <DataTable
           :value="questions"
           v-if="selectedQuizId"
           class="mt-4"
+          :loading="isLoading || isSumbmiting"
           :paginator="true"
           :rows="5"
           paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
@@ -250,8 +267,8 @@ function actionTemplate(rowData) {
           <Column field="marks" header="Marks" />
           <Column :exportable="false" header="Action" style="min-width: 12rem">
             <template #body="slotProps">
-              <Button icon="pi pi-pencil" outlined rounded class="mr-2" @click="openQuestionDialog(slotProps.data)" />
-              <Button icon="pi pi-trash" outlined rounded severity="danger" @click="confirmDeleteQuestion(slotProps.data)" />
+              <Button icon="pi pi-pencil":loading="isSumbmiting"  outlined rounded class="mr-2" @click="openQuestionDialog(slotProps.data)" />
+              <Button icon="pi pi-trash" :loading="isSumbmiting"  outlined rounded severity="danger" @click="confirmDeleteQuestion(slotProps.data)" />
             </template>
           </Column>
         </DataTable>
@@ -278,7 +295,7 @@ function actionTemplate(rowData) {
                 <span class="p-inputgroup-addon">
                   <Checkbox v-model="option.is_correct" :binary="true" />
                 </span>
-                <Button icon="pi pi-times" class="p-button-danger" @click="removeOption(index)" />
+                <Button icon="pi pi-times" class="p-button-danger m-1 w-3 h-3" @click="removeOption(index)" />
               </div>
               <Button icon="pi pi-plus" label="Add Option" @click="addOption" class="p-button-text" />
             </div>
@@ -287,13 +304,12 @@ function actionTemplate(rowData) {
             <div v-if="newQuestion.type === 'matching'" class="field col-12">
               <label>Matching Pairs</label>
               <div v-for="(pair, index) in newQuestion.matching_pairs" :key="index" class="p-inputgroup mb-2">
-                <InputText v-model="pair.left_value" placeholder="Left item" class="w-full" />
+                <InputText v-model="pair.left_value" placeholder="Left item" class="w-full mb-2"  />
                 <InputText v-model="pair.right_value" placeholder="Right match" class="w-full" />
-                <Button icon="pi pi-times" class="p-button-danger" @click="removePair(index)" />
+                <Button  icon="pi pi-times"  :loading="isSumbmiting"  class="p-button-danger m-1 w-3 h-3" @click="removePair(index)" />
               </div>
-              <Button icon="pi pi-plus" label="Add Pair" @click="addPair" class="p-button-text" />
+              <Button icon="pi pi-plus" :loading="isSumbmiting"  label="Add Pair" @click="addPair" class="p-button-text" />
             </div>
-  
             <!-- Short Answer -->
             <div v-if="newQuestion.type === 'short_answer'" class="field col-12">
               <label>Correct Answer</label>
@@ -307,10 +323,10 @@ function actionTemplate(rowData) {
           </div>
   
           <template #footer>
-            <Button label="Cancel" icon="pi pi-times" @click="closeQuestionDialog" class="p-button-text" />
-            <Button label="Save and Add New" icon="pi pi-plus" @click="saveQuestion(true)"
+            <Button label="Cancel" icon="pi pi-times" :loading="isSumbmiting"  @click="closeQuestionDialog" class="p-button-text" />
+            <Button label="Save and Add New" icon="pi pi-plus" :loading="isSumbmiting"  @click="saveQuestion(true)"
               :disabled="!isQuestionFormValid" />
-            <Button label="Save" icon="pi pi-check" @click="saveQuestion(false)" :disabled="!isQuestionFormValid" />
+            <Button label="Save" icon="pi pi-check" :loading="isSumbmiting"  @click="saveQuestion(false)" :disabled="!isQuestionFormValid" />
           </template>
         </Dialog>
 
@@ -321,11 +337,11 @@ function actionTemplate(rowData) {
             <span>Are you sure you want to delete this question?</span>
           </div>
           <template #footer>
-            <Button label="No" icon="pi pi-times" text @click="deleteDialog = false" />
-            <Button label="Yes" icon="pi pi-check" text @click="deleteQuestion" />
+            <Button label="No" icon="pi pi-times" :loading="isSumbmiting"  text @click="deleteDialog = false" />
+            <Button label="Yes" icon="pi pi-check" :loading="isSumbmiting"  text @click="deleteQuestion" />
           </template>
         </Dialog>
       </div>
     </div>
   </template>
-  
+
