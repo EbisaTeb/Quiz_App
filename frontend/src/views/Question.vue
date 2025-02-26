@@ -1,3 +1,222 @@
+<script setup>
+import { ref, reactive, computed, onMounted, watch, h } from 'vue';
+import axiosClient from '@/axios';
+
+import Dialog from 'primevue/dialog';
+import Button from 'primevue/button';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+ import InputText from 'primevue/inputtext';
+ import Toast from 'primevue/toast';
+ import { useToast } from 'primevue/usetoast';
+ import Select from 'primevue/select';
+ import InputNumber from 'primevue/inputnumber';
+ import Checkbox  from 'primevue/checkbox';
+
+
+const toast = useToast();
+const selectedQuizId = ref(null);
+const teacherQuizzes = ref([]);
+const questions = ref([]);
+const questionDialog = ref(false);
+const editingQuestionId = ref(null);
+const deleteDialog = ref(false);
+
+const questionTypes = [
+ { label: 'Multiple Choice', value: 'mcq' },
+ { label: 'Short Answer', value: 'short_answer' },
+ { label: 'Matching', value: 'matching' }
+];
+
+const defaultQuestion = {
+ type: 'mcq',
+ content: '',
+ options: [],
+ matching_pairs: [],
+ correct_answer: '',
+ marks: 1
+};
+
+const newQuestion = reactive({ ...defaultQuestion });
+
+const isQuestionFormValid = computed(() => {
+ if (!newQuestion.content || newQuestion.marks < 1) return false;
+ 
+ switch (newQuestion.type) {
+   case 'mcq':
+     return newQuestion.options.length >= 2 && 
+            newQuestion.options.some(o => o.is_correct) &&
+            newQuestion.options.every(o => o.content);
+   case 'matching':
+     return newQuestion.matching_pairs.length >= 2 &&
+            newQuestion.matching_pairs.every(p => p.left_value && p.right_value);
+   case 'short_answer':
+     return newQuestion.correct_answer.trim().length > 0;
+   default:
+     return false;
+ }
+});
+
+onMounted(async () => {
+ try {
+   const response = await axiosClient.get('/quiz/teacher-quizzes');
+   teacherQuizzes.value = response.data;
+ } catch (error) {
+   showError('Failed to load quizzes');
+ }
+});
+
+watch(selectedQuizId, async (newQuizId) => {
+ if (newQuizId) {
+   try {
+     const response = await axiosClient.get(`/quizzes/${newQuizId}/questions`);
+     questions.value = response.data;
+   } catch (error) {
+     showError('Failed to load questions');
+   }
+ } else {
+   questions.value = [];
+ }
+});
+
+function openQuestionDialog(question = null) {
+ if (question) {
+   Object.assign(newQuestion, question);
+   if (newQuestion.type === 'mcq' && !newQuestion.options) {
+     newQuestion.options = [];
+   }
+   if (newQuestion.type === 'matching' && !newQuestion.matching_pairs) {
+     newQuestion.matching_pairs = [];
+   }
+   editingQuestionId.value = question.id;
+ } else {
+   resetQuestionForm();
+   editingQuestionId.value = null;
+ }
+ questionDialog.value = true;
+ setTimeout(() => {
+   const firstInput = document.querySelector('input');
+   if (firstInput) {
+     firstInput.focus();
+   }
+ }, 100);
+}
+
+function closeQuestionDialog() {
+ questionDialog.value = false;
+ resetQuestionForm();
+}
+
+function resetQuestionForm() {
+ Object.assign(newQuestion, defaultQuestion);
+ newQuestion.options = [];
+ newQuestion.matching_pairs = [];
+}
+
+function addOption() {
+ newQuestion.options.push({ content: '', is_correct: false });
+}
+
+function removeOption(index) {
+ newQuestion.options.splice(index, 1);
+}
+
+function addPair() {
+ newQuestion.matching_pairs.push({ left_value: '', right_value: '' });
+}
+
+function removePair(index) {
+ newQuestion.matching_pairs.splice(index, 1);
+}
+
+async function saveQuestion(addAnother) {
+ try {
+   const payload = {
+     quiz_id: selectedQuizId.value,
+     questions: [
+       {
+         type: newQuestion.type,
+         content: newQuestion.content,
+         options: newQuestion.type === 'mcq' ? newQuestion.options : [],
+         matching_pairs: newQuestion.type === 'matching' ? newQuestion.matching_pairs : [],
+         correct_answer: newQuestion.type === 'short_answer' ? newQuestion.correct_answer : '',
+         marks: newQuestion.marks
+       }
+     ]
+   };
+
+   if (editingQuestionId.value) {
+     await axiosClient.put(`/questions/${editingQuestionId.value}`, payload.questions[0]);
+     showSuccess('Question updated successfully');
+   } else {
+     await axiosClient.post('/questions', payload);
+     showSuccess('Question added successfully');
+   }
+
+   if (addAnother) {
+     resetQuestionForm();
+   } else {
+     closeQuestionDialog();
+   }
+
+   // Refresh questions list
+   const response = await axiosClient.get(`/quizzes/${selectedQuizId.value}/questions`);
+   questions.value = response.data;
+ } catch (error) {
+   if (error.response && error.response.status === 422) {
+     showError('Validation error: Please check the input fields.');
+   } else {
+     handleApiError(error, 'save question');
+   }
+ }
+}
+
+function confirmDeleteQuestion(question) {
+ editingQuestionId.value = question.id;
+ deleteDialog.value = true;
+}
+
+async function deleteQuestion() {
+ try {
+   await axiosClient.delete(`/questions/${editingQuestionId.value}`);
+   showSuccess('Question deleted successfully');
+   // Refresh questions list
+   const response = await axiosClient.get(`/quizzes/${selectedQuizId.value}/questions`);
+   questions.value = response.data;
+   deleteDialog.value = false;
+ } catch (error) {
+   handleApiError(error, 'delete question');
+ }
+}
+
+function showSuccess(message) {
+ toast.add({ severity: 'success', summary: 'Success', detail: message, life: 3000 });
+}
+
+function showError(message) {
+ toast.add({ severity: 'error', summary: 'Error', detail: message, life: 5000 });
+}
+
+function handleApiError(error, action) {
+ const message = error.response?.data?.message || error.message;
+ showError(`Failed to ${action}: ${message}`);
+}
+
+function actionTemplate(rowData) {
+ return h('div', [
+   h(Button, {
+     icon: 'pi pi-pencil',
+     class: 'p-button-rounded p-button-success mr-2',
+     onClick: () => openQuestionDialog(rowData)
+   }),
+   h(Button, {
+     icon: 'pi pi-trash',
+     class: 'p-button-rounded p-button-danger',
+     onClick: () => deleteQuestion(rowData.id)
+   })
+ ]);
+}
+</script>
 <template>
     <div>
       <Toast />
@@ -110,222 +329,3 @@
     </div>
   </template>
   
-  <script setup>
-   import { ref, reactive, computed, onMounted, watch, h } from 'vue';
-   import axiosClient from '@/axios';
-
-   import Dialog from 'primevue/dialog';
-   import Button from 'primevue/button';
-   import DataTable from 'primevue/datatable';
-   import Column from 'primevue/column';
-    import InputText from 'primevue/inputtext';
-    import Toast from 'primevue/toast';
-    import { useToast } from 'primevue/usetoast';
-    import Select from 'primevue/select';
-    import InputNumber from 'primevue/inputnumber';
-    import Checkbox  from 'primevue/checkbox';
-
-  
-  const toast = useToast();
-  const selectedQuizId = ref(null);
-  const teacherQuizzes = ref([]);
-  const questions = ref([]);
-  const questionDialog = ref(false);
-  const editingQuestionId = ref(null);
-  const deleteDialog = ref(false);
-  
-  const questionTypes = [
-    { label: 'Multiple Choice', value: 'mcq' },
-    { label: 'Short Answer', value: 'short_answer' },
-    { label: 'Matching', value: 'matching' }
-  ];
-  
-  const defaultQuestion = {
-    type: 'mcq',
-    content: '',
-    options: [],
-    matching_pairs: [],
-    correct_answer: '',
-    marks: 1
-  };
-  
-  const newQuestion = reactive({ ...defaultQuestion });
-  
-  const isQuestionFormValid = computed(() => {
-    if (!newQuestion.content || newQuestion.marks < 1) return false;
-    
-    switch (newQuestion.type) {
-      case 'mcq':
-        return newQuestion.options.length >= 2 && 
-               newQuestion.options.some(o => o.is_correct) &&
-               newQuestion.options.every(o => o.content);
-      case 'matching':
-        return newQuestion.matching_pairs.length >= 2 &&
-               newQuestion.matching_pairs.every(p => p.left_value && p.right_value);
-      case 'short_answer':
-        return newQuestion.correct_answer.trim().length > 0;
-      default:
-        return false;
-    }
-  });
-  
-  onMounted(async () => {
-    try {
-      const response = await axiosClient.get('/quiz/teacher-quizzes');
-      teacherQuizzes.value = response.data;
-    } catch (error) {
-      showError('Failed to load quizzes');
-    }
-  });
-  
-  watch(selectedQuizId, async (newQuizId) => {
-    if (newQuizId) {
-      try {
-        const response = await axiosClient.get(`/quizzes/${newQuizId}/questions`);
-        questions.value = response.data;
-      } catch (error) {
-        showError('Failed to load questions');
-      }
-    } else {
-      questions.value = [];
-    }
-  });
-  
-  function openQuestionDialog(question = null) {
-    if (question) {
-      Object.assign(newQuestion, question);
-      if (newQuestion.type === 'mcq' && !newQuestion.options) {
-        newQuestion.options = [];
-      }
-      if (newQuestion.type === 'matching' && !newQuestion.matching_pairs) {
-        newQuestion.matching_pairs = [];
-      }
-      editingQuestionId.value = question.id;
-    } else {
-      resetQuestionForm();
-      editingQuestionId.value = null;
-    }
-    questionDialog.value = true;
-    setTimeout(() => {
-      const firstInput = document.querySelector('input');
-      if (firstInput) {
-        firstInput.focus();
-      }
-    }, 100);
-  }
-  
-  function closeQuestionDialog() {
-    questionDialog.value = false;
-    resetQuestionForm();
-  }
-  
-  function resetQuestionForm() {
-    Object.assign(newQuestion, defaultQuestion);
-    newQuestion.options = [];
-    newQuestion.matching_pairs = [];
-  }
-  
-  function addOption() {
-    newQuestion.options.push({ content: '', is_correct: false });
-  }
-  
-  function removeOption(index) {
-    newQuestion.options.splice(index, 1);
-  }
-  
-  function addPair() {
-    newQuestion.matching_pairs.push({ left_value: '', right_value: '' });
-  }
-  
-  function removePair(index) {
-    newQuestion.matching_pairs.splice(index, 1);
-  }
-  
-  async function saveQuestion(addAnother) {
-    try {
-      const payload = {
-        quiz_id: selectedQuizId.value,
-        questions: [
-          {
-            type: newQuestion.type,
-            content: newQuestion.content,
-            options: newQuestion.type === 'mcq' ? newQuestion.options : [],
-            matching_pairs: newQuestion.type === 'matching' ? newQuestion.matching_pairs : [],
-            correct_answer: newQuestion.type === 'short_answer' ? newQuestion.correct_answer : '',
-            marks: newQuestion.marks
-          }
-        ]
-      };
-  
-      if (editingQuestionId.value) {
-        await axiosClient.put(`/questions/${editingQuestionId.value}`, payload.questions[0]);
-        showSuccess('Question updated successfully');
-      } else {
-        await axiosClient.post('/questions', payload);
-        showSuccess('Question added successfully');
-      }
-  
-      if (addAnother) {
-        resetQuestionForm();
-      } else {
-        closeQuestionDialog();
-      }
-  
-      // Refresh questions list
-      const response = await axiosClient.get(`/quizzes/${selectedQuizId.value}/questions`);
-      questions.value = response.data;
-    } catch (error) {
-      if (error.response && error.response.status === 422) {
-        showError('Validation error: Please check the input fields.');
-      } else {
-        handleApiError(error, 'save question');
-      }
-    }
-  }
-  
-  function confirmDeleteQuestion(question) {
-    editingQuestionId.value = question.id;
-    deleteDialog.value = true;
-  }
-
-  async function deleteQuestion() {
-    try {
-      await axiosClient.delete(`/questions/${editingQuestionId.value}`);
-      showSuccess('Question deleted successfully');
-      // Refresh questions list
-      const response = await axiosClient.get(`/quizzes/${selectedQuizId.value}/questions`);
-      questions.value = response.data;
-      deleteDialog.value = false;
-    } catch (error) {
-      handleApiError(error, 'delete question');
-    }
-  }
-  
-  function showSuccess(message) {
-    toast.add({ severity: 'success', summary: 'Success', detail: message, life: 3000 });
-  }
-  
-  function showError(message) {
-    toast.add({ severity: 'error', summary: 'Error', detail: message, life: 5000 });
-  }
-  
-  function handleApiError(error, action) {
-    const message = error.response?.data?.message || error.message;
-    showError(`Failed to ${action}: ${message}`);
-  }
-
-  function actionTemplate(rowData) {
-    return h('div', [
-      h(Button, {
-        icon: 'pi pi-pencil',
-        class: 'p-button-rounded p-button-success mr-2',
-        onClick: () => openQuestionDialog(rowData)
-      }),
-      h(Button, {
-        icon: 'pi pi-trash',
-        class: 'p-button-rounded p-button-danger',
-        onClick: () => deleteQuestion(rowData.id)
-      })
-    ]);
-  }
-  </script>
