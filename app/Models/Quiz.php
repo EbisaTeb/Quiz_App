@@ -30,6 +30,7 @@ class Quiz extends Model
         'start_time' => 'datetime',
         'end_time' => 'datetime',
         'published_at' => 'datetime',
+        'is_published' => 'boolean',
     ];
 
     /**

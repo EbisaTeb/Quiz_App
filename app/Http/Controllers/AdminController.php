@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Quiz;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -119,5 +120,24 @@ class AdminController extends Controller
         }
 
         return response()->json(['message' => 'Subjects assigned successfully']);
+    }
+
+    public function getAllQuizzes()
+    {
+        $quizzes = Quiz::with(['teacher', 'subject'])->get();
+        return response()->json($quizzes);
+    }
+
+    public function updateQuizStatus(Request $request, Quiz $quiz)
+    {
+        $validated = $request->validate([
+            'is_published' => 'required|boolean',
+        ]);
+
+        $quiz->is_published = $validated['is_published'];
+        $quiz->published_by = $validated['is_published'] ? Auth::id() : null;
+        $quiz->save();
+
+        return response()->json(['message' => 'Quiz status updated successfully']);
     }
 }

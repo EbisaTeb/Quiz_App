@@ -35,6 +35,9 @@ Route::middleware('auth:api', 'approved')->group(function () {
         Route::get('/pending-approvals', [AdminController::class, 'pendingApprovals']);
         Route::post('/users/{user}/approve', [AdminController::class, 'approveUser']);
 
+        // Quiz management
+        Route::get('/admin/quizzes', [AdminController::class, 'getAllQuizzes']);
+        Route::put('/admin/quizzes/{quiz}/status', [AdminController::class, 'updateQuizStatus']);
 
         // Teacher routes
         Route::get('/teachers/subjects-classes', [TeacherController::class, 'fechSubjectClass']);

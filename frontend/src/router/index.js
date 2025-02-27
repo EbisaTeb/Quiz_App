@@ -17,6 +17,8 @@ import Quiz from "@/views/Quiz.vue";
 import Question from "@/views/Question.vue";
 import QuizDetail from "../views/QuizDetail.vue";
 
+import AdminQuizManagement from "@/views/AdminQuizManagement.vue";
+
 
 const routes = [
   { path: "/", redirect: { name: "login" } }, // Redirect root to login
@@ -34,7 +36,9 @@ const routes = [
       { path: "addteacher", name: "app.addteacher", component: AddTeacher},
       { path: "quiz", name: "app.quiz", component: Quiz},
       { path: "question", name: "app.question", component: Question},
-      // { path: "/quiz/:id", name: "app.quizDetail", component: QuizDetail ,meta: { requiresAuth: true } },
+      { path: "adminquizmanagement", name: "app.adminquizmanagement", component: AdminQuizManagement},
+      
+      
     ],
   },
   {path:"/student",name:"student",component:Studentlayout},
