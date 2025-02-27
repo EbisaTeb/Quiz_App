@@ -32,9 +32,9 @@ onMounted(async () => {
       <p><strong>End Time:</strong> {{ new Date(quiz.end_time).toLocaleString() }}</p>
       <h4>Questions</h4>
       <div v-for="(question, index) in quiz.questions" :key="question.id" class="question-detail">
-        <p><strong>Question {{ index + 1 }}:</strong> {{ question.content }}</p>
+        <p><strong>Question {{ index + 1 }}:</strong> {{ question.content }} <strong>({{ question.marks }} marks)</strong></p>
+
         <p><strong>Type:</strong> {{ question.type }}</p>
-        <p><strong>Marks:</strong> {{ question.marks }}</p>
         <div v-if="question.type === 'mcq'">
           <p><strong>Options:</strong></p>
           <ul>

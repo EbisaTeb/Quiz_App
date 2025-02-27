@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Quiz;
 use App\Models\TeacherSubjectClass;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -74,10 +75,17 @@ class QuizController extends Controller
         }
     }
 
-    public function show(Quiz $quiz)
+    public function show($quiz_id)
     {
-        $this->authorize('view', $quiz);
-        return response()->json($quiz->load(['questions', 'classes', 'subject']));
+        try {
+            $quiz = Quiz::with(['questions.options', 'questions.matchingPairs', 'classes', 'subject'])->findOrFail($quiz_id);
+            $this->authorize('view', $quiz);
+            return response()->json($quiz, 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Quiz not found'], 404);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'An error occurred', 'error' => $e->getMessage()], 500);
+        }
     }
 
     public function update(Request $request, Quiz $quiz)

@@ -34,6 +34,7 @@ const routes = [
       { path: "addteacher", name: "app.addteacher", component: AddTeacher},
       { path: "quiz", name: "app.quiz", component: Quiz},
       { path: "question", name: "app.question", component: Question},
+      // { path: "/quiz/:id", name: "app.quizDetail", component: QuizDetail ,meta: { requiresAuth: true } },
     ],
   },
   {path:"/student",name:"student",component:Studentlayout},
