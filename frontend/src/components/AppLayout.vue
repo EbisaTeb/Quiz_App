@@ -23,15 +23,15 @@ function handleSibarOpen(){
 }
 </script>
 <template >
-<div class=" flex bg-gray-200  h-screen">
+<div class="flex bg-gray-200 h-screen overflow-hidden">
   <!-- sidebar -->
-      <Sidebar :class="{'-ml-[200px]':!sidebarOpen}"/>
+      <Sidebar :class="{'-ml-[200px]':!sidebarOpen, 'md:ml-0': sidebarOpen}" class="fixed md:relative h-full"/>
     <!-- sidebar -->
-      <div class="flex-1 mb-4">
+      <div class="flex-1 flex flex-col overflow-hidden">
     <Navbar @toggle-sidebar="toggleSidebar"/>
        
         <!-- content  -->
-        <main  class="p-1">
+        <main  class="p-1 overflow-y-auto mt-3">
           <div class="p-2 rounded ">
           <router-view></router-view>
           </div>
