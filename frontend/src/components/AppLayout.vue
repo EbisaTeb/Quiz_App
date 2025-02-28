@@ -25,10 +25,10 @@ function handleSibarOpen(){
 <template >
 <div class="flex bg-gray-200 h-screen overflow-hidden">
   <!-- sidebar -->
-      <Sidebar :class="{'-ml-[200px]':!sidebarOpen, 'md:ml-0': sidebarOpen}" class="fixed md:relative h-full"/>
+      <Sidebar :class="{'-ml-[200px]':!sidebarOpen, 'md:ml-0': sidebarOpen}" class="fixed md:relative h-full z-20"/>
     <!-- sidebar -->
       <div class="flex-1 flex flex-col overflow-hidden">
-    <Navbar @toggle-sidebar="toggleSidebar"/>
+    <Navbar @toggle-sidebar="toggleSidebar" class="z-20"/>
        
         <!-- content  -->
         <main  class="p-1 overflow-y-auto mt-3">
