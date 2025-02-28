@@ -67,7 +67,15 @@ Route::middleware('auth:api', 'approved')->group(function () {
         Route::get('/quizzes/teacher-assignments/{userId}', [QuizController::class, 'getTeacherAssignments']);
         Route::get('/quizzes', [QuizController::class, 'index']);
         Route::get('/quizzes/{quiz}', [QuizController::class, 'show']);
+
+        // fetching quiz with questions
+        Route::get('quizzes/{quiz}/questions', [QuestionController::class, 'getQuizQuestions']);
+        Route::get('quizzes/{quiz_id}/questions', [QuestionController::class, 'getQuizQuestions']);
+
+
+
         // Question routes
+
         Route::get('/quiz/teacher-quizzes', [QuestionController::class, 'getTeacherQuizzes']);
         Route::post('/questions', [QuestionController::class, 'addQuestions']);
         Route::put('/questions/{id}', [QuestionController::class, 'updateQuestion']);

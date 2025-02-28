@@ -237,7 +237,7 @@ function actionTemplate(rowData) {
     <div>
       <Toast />
       <div class="card">
-        <h3>Manage Questions</h3>
+        <h3>Manage Questions</h3>   
         <div class="p-fluid grid">
           <div class="field col-12 md:col-4 mt-2">
             <label>Select Quiz</label>

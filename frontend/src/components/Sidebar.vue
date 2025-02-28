@@ -43,6 +43,10 @@ const isStudent = userRoles.includes('student');
         <i class="pi pi-plus mr-2 w-5 text-gray-300"></i>
         <span class="text-xs">Subject</span>
       </router-link>
+      <router-link :to="{ name: 'app.addstudent' }" class="flex items-center py-1 px-2 rounded transition-colors hover:bg-black/30 mb-2">
+        <i class="pi pi-plus mr-2 w-5 text-gray-300"></i>
+        <span class="text-xs">Student</span>
+      </router-link>
 
       <router-link :to="{ name: 'app.addteacher' }" class="flex items-center py-1 px-2 rounded transition-colors hover:bg-black/30 mb-2">
         <i class="pi pi-plus mr-2 w-5 text-gray-300"></i>
