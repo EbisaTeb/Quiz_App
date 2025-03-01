@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Models\Quiz;
+use App\Models\StudentSubject;
 use App\Models\User;
 
 class QuizPolicy
@@ -33,9 +34,11 @@ class QuizPolicy
         }
 
         if ($user->hasRole('student')) {
-            return $quiz->classes()->whereHas('students', function ($query) use ($user) {
-                $query->where('student_id', $user->id);
-            })->exists();
+            // Check student enrollment through StudentSubject
+            return StudentSubject::where('student_id', $user->id)
+                ->where('subject_id', $quiz->subject_id)
+                ->whereIn('class_id', $quiz->classes->pluck('id'))
+                ->exists();
         }
 
         return true; // Admin
