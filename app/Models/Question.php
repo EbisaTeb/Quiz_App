@@ -22,6 +22,7 @@ class Question extends Model
     {
         return $this->belongsTo(Quiz::class);
     }
+
     public function options()
     {
         return $this->hasMany(QuestionOption::class);
@@ -30,5 +31,10 @@ class Question extends Model
     public function matchingPairs()
     {
         return $this->hasMany(MatchingPair::class);
+    }
+
+    public function answers()
+    {
+        return $this->hasMany(Answer::class);
     }
 }

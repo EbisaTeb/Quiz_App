@@ -13,26 +13,34 @@ class QuizController extends Controller
 {
     public function getTeacherAssignments($userId)
     {
-        $assignments = TeacherSubjectClass::with(['class', 'subject'])
-            ->where('teacher_id', $userId)
-            ->get();
+        try {
+            $assignments = TeacherSubjectClass::with(['class', 'subject'])
+                ->where('teacher_id', $userId)
+                ->get();
 
-        if ($assignments->isEmpty()) {
-            return response()->json(['message' => 'No assignments found'], 404);
+            if ($assignments->isEmpty()) {
+                return response()->json(['message' => 'No assignments found'], 404);
+            }
+
+            return response()->json($assignments);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'An error occurred', 'error' => $e->getMessage()], 500);
         }
-
-        return response()->json($assignments);
     }
 
     public function index(Request $request)
     {
-        $quizzes = Quiz::query()
-            ->when(Auth::user()->hasRole('teacher'), fn($q) => $q->where('teacher_id', Auth::user()->id))
-            ->when(Auth::user()->hasRole('student'), fn($q) => $q->whereHas('classes.students', fn($q) => $q->where('student_id', Auth::user()->id)))
-            ->with(['classes', 'subject'])
-            ->paginate(10);
+        try {
+            $quizzes = Quiz::query()
+                ->when(Auth::user()->hasRole('teacher'), fn($q) => $q->where('teacher_id', Auth::user()->id))
+                ->when(Auth::user()->hasRole('student'), fn($q) => $q->whereHas('classes.students', fn($q) => $q->where('student_id', Auth::user()->id)))
+                ->with(['classes', 'subject'])
+                ->paginate(10);
 
-        return response()->json($quizzes);
+            return response()->json($quizzes);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'An error occurred', 'error' => $e->getMessage()], 500);
+        }
     }
 
     public function store(Request $request)
@@ -90,41 +98,49 @@ class QuizController extends Controller
 
     public function update(Request $request, Quiz $quiz)
     {
-        $this->authorize('update', $quiz);
+        try {
+            $this->authorize('update', $quiz);
 
-        $validated = $request->validate([
-            'title' => 'sometimes|required|string|max:255',
-            'class_ids' => [
-                'sometimes',
-                'required',
-                'array',
-                Rule::exists('teacher_subject_class', 'class_id')->where('teacher_id', Auth::user()->id)
-            ],
-            'subject_id' => [
-                'sometimes',
-                'required',
-                Rule::exists('teacher_subject_class', 'subject_id')->where('teacher_id', Auth::id())
-            ],
-            'time_limit' => 'sometimes|required|integer|min:1',
-            'start_time' => 'sometimes|required|date',
-            'end_time' => 'sometimes|required|date|after:start_time',
-        ]);
+            $validated = $request->validate([
+                'title' => 'sometimes|required|string|max:255',
+                'class_ids' => [
+                    'sometimes',
+                    'required',
+                    'array',
+                    Rule::exists('teacher_subject_class', 'class_id')->where('teacher_id', Auth::user()->id)
+                ],
+                'subject_id' => [
+                    'sometimes',
+                    'required',
+                    Rule::exists('teacher_subject_class', 'subject_id')->where('teacher_id', Auth::id())
+                ],
+                'time_limit' => 'sometimes|required|integer|min:1',
+                'start_time' => 'sometimes|required|date',
+                'end_time' => 'sometimes|required|date|after:start_time',
+            ]);
 
-        $quiz->update($validated);
+            $quiz->update($validated);
 
-        if (isset($validated['class_ids'])) {
-            $quiz->classes()->sync($validated['class_ids']);
+            if (isset($validated['class_ids'])) {
+                $quiz->classes()->sync($validated['class_ids']);
+            }
+
+            return response()->json($quiz->load('questions'), 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'An error occurred', 'error' => $e->getMessage()], 500);
         }
-
-        return response()->json($quiz->load('questions'), 200);
     }
 
     public function destroy(Quiz $quiz)
     {
-        $this->authorize('delete', $quiz);
+        try {
+            $this->authorize('delete', $quiz);
 
-        $quiz->delete();
+            $quiz->delete();
 
-        return response()->json(['message' => 'Quiz deleted successfully'], 200);
+            return response()->json(['message' => 'Quiz deleted successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'An error occurred', 'error' => $e->getMessage()], 500);
+        }
     }
 }

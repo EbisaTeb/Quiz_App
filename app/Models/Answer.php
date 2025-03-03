@@ -11,8 +11,14 @@ class Answer extends Model
     protected $casts = [
         'student_answer' => 'array',
     ];
+
     public function attempt()
     {
         return $this->belongsTo(QuizAttempt::class);
+    }
+
+    public function question()
+    {
+        return $this->belongsTo(Question::class);
     }
 }

@@ -9,11 +9,6 @@ class Quiz extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $fillable = [
         'title',
         'teacher_id',
@@ -33,9 +28,6 @@ class Quiz extends Model
         'is_published' => 'boolean',
     ];
 
-    /**
-     * Get the teacher that owns the quiz.
-     */
     public function teacher()
     {
         return $this->belongsTo(User::class, 'teacher_id');
@@ -56,9 +48,6 @@ class Quiz extends Model
         return $this->belongsTo(User::class, 'published_by');
     }
 
-    /**
-     * Get the teacherSubjectClass relationship.
-     */
     public function teacherSubjectClass()
     {
         return $this->belongsTo(TeacherSubjectClass::class, 'class_id', 'class_id')
@@ -71,12 +60,11 @@ class Quiz extends Model
         return $this->hasMany(Question::class);
     }
 
-    // public function attempts()
-    // {
-    //     return $this->hasMany(QuizAttempt::class);
-    // }
+    public function attempts()
+    {
+        return $this->hasMany(QuizAttempt::class);
+    }
 
-    // Get quizzes available to student based on StudentSubject
     public function scopeForStudent($query, User $student)
     {
         return $query->whereHas('teacherSubjectClass', function ($q) use ($student) {
@@ -85,7 +73,6 @@ class Quiz extends Model
         });
     }
 
-    // Get quizzes created by teacher through TeacherSubjectClass
     public function scopeForTeacher($query, User $teacher)
     {
         return $query->whereHas('teacherSubjectClass', function ($q) use ($teacher) {

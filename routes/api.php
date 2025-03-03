@@ -5,8 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\GradingController;
 use App\Http\Controllers\QuestionController;
-use App\Http\Controllers\QuizController;;
-
+use App\Http\Controllers\QuizController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\SubmissionController;
@@ -85,9 +84,12 @@ Route::middleware('auth:api', 'approved')->group(function () {
 
     // Student routes
     Route::middleware('role:student')->group(function () {
-        Route::get('/quizzes/assigned', [QuizController::class, 'assignedQuizzes']);
-        // Route::post('/quizzes/{quiz}/submit', [SubmissionController::class, 'submitQuiz']);
-        // Route::get('/submissions', [SubmissionController::class, 'index']);
+        Route::get('/student/quizzes', [SubmissionController::class, 'fetchStudentQuizzes']);
+        Route::get('/student/quizzes/{quiz}', [SubmissionController::class, 'showQuiz']);
+        Route::post('/quizzes/{quiz}/submit', [SubmissionController::class, 'submitQuiz']);
+        Route::post('/quizzes/auto-grade', [SubmissionController::class, 'autoGrade']);
+        Route::get('/submissions', [SubmissionController::class, 'index']);
+        Route::get('/submissions/{submission}', [SubmissionController::class, 'show']);
     });
 
     // Shared routes

@@ -34,8 +34,8 @@ class QuizPolicy
         }
 
         if ($user->hasRole('student')) {
-            // Check student enrollment through StudentSubject
-            return StudentSubject::where('student_id', $user->id)
+            // Check student enrollment through StudentSubject and quiz availability
+            return $quiz->is_published && now()->isBetween($quiz->start_time, $quiz->end_time) && StudentSubject::where('student_id', $user->id)
                 ->where('subject_id', $quiz->subject_id)
                 ->whereIn('class_id', $quiz->classes->pluck('id'))
                 ->exists();
