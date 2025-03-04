@@ -18,6 +18,7 @@ import Question from "@/views/Question.vue";
 import QuizDetail from "../views/QuizDetail.vue";
 import AdminQuizManagement from "@/views/AdminQuizManagement.vue";
 import ActiveQuizzes from "@/views/ActiveQuizzes.vue";
+import QuizSubmission from "@/views/QuizSubmission.vue";
 
 const routes = [
   { path: "/", redirect: { name: "login" } }, // Redirect root to login
@@ -37,6 +38,7 @@ const routes = [
       { path: "question", name: "app.question", component: Question},
       { path: "adminquizmanagement", name: "app.adminquizmanagement", component: AdminQuizManagement},
       { path: "active-quizzes", name: "app.activequizzes", component: ActiveQuizzes },
+      { path: "quizsubmission/:id", name: "app.quizsubmission", component: QuizSubmission },
     ],
   },
   {path:"/student",name:"student",component:Studentlayout},
@@ -68,8 +70,4 @@ router.beforeEach(async (to, from, next) => {
   }
 });
 
-
-// if (store.user?.roles.map(role => role.name).join() === "student" && to.name !== "student") {
-//   next({ name: "student" });
-// }
 export default router;

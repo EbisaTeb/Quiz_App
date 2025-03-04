@@ -72,6 +72,9 @@ class SubmissionController extends Controller
         try {
             $user = Auth::user();
 
+            // Log user details for debugging
+            Log::info('Authenticated user:', ['user' => $user]);
+
             if (!$user->hasRole('student')) {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }

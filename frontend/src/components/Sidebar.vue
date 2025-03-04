@@ -83,15 +83,6 @@ const isStudent = userRoles.includes('student');
           <i class="pi pi-file mr-2 w-5 text-black-300"></i>
           <span class="text-xs">Active Quizzes</span>
         </router-link>
-        <!-- <router-link :to="{ name: 'app.quizsubmission', params: { id: userId } }" class="flex items-center py-1 px-2 rounded transition-colors hover:bg-black/30 mb-2">
-          <i class="pi pi-file mr-2 w-5 text-black-300"></i>
-          <span class="text-xs">Take Quizzes</span>
-        </router-link> -->
-        
-        <!-- <router-link :to="{ name: 'app.submissions' }" class="flex items-center py-1 px-2 rounded transition-colors hover:bg-black/30 mb-2">
-          <i class="pi pi-file mr-2 w-5 text-black-300"></i>
-          <span class="text-xs">My Submissions</span>
-        </router-link> -->
       </template>
     </div>
   </div>
