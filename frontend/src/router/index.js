@@ -16,9 +16,8 @@ import Studentlayout from "@/components/Studentlayout.vue";
 import Quiz from "@/views/Quiz.vue";
 import Question from "@/views/Question.vue";
 import QuizDetail from "../views/QuizDetail.vue";
-
 import AdminQuizManagement from "@/views/AdminQuizManagement.vue";
-
+import ActiveQuizzes from "@/views/ActiveQuizzes.vue";
 
 const routes = [
   { path: "/", redirect: { name: "login" } }, // Redirect root to login
@@ -37,8 +36,7 @@ const routes = [
       { path: "quiz", name: "app.quiz", component: Quiz},
       { path: "question", name: "app.question", component: Question},
       { path: "adminquizmanagement", name: "app.adminquizmanagement", component: AdminQuizManagement},
-      
-      
+      { path: "active-quizzes", name: "app.activequizzes", component: ActiveQuizzes },
     ],
   },
   {path:"/student",name:"student",component:Studentlayout},

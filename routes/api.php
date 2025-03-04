@@ -84,6 +84,7 @@ Route::middleware('auth:api', 'approved')->group(function () {
 
     // Student routes
     Route::middleware('role:student')->group(function () {
+        Route::get('/student/active-quizzes', [SubmissionController::class, 'fetchActiveQuizzes']);
         Route::get('/student/quizzes', [SubmissionController::class, 'fetchStudentQuizzes']);
         Route::get('/student/quizzes/{quiz}', [SubmissionController::class, 'showQuiz']);
         Route::post('/quizzes/{quiz}/submit', [SubmissionController::class, 'submitQuiz']);

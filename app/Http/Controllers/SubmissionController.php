@@ -39,6 +39,34 @@ class SubmissionController extends Controller
         }
     }
 
+    public function fetchActiveQuizzes()
+    {
+        try {
+            $user = Auth::user();
+
+            if (!$user->hasRole('student')) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+
+            // dd($request->all());
+
+            $quizzes = Quiz::whereHas('classes.students', function ($query) use ($user) {
+                $query->where('student_id', $user->id);
+            })
+                ->where('is_published', true)
+                ->where('start_time', '<=', now())
+                ->where('end_time', '>=', now())
+                ->with(['classes', 'subject'])
+                ->get();
+
+            return response()->json($quizzes);
+        } catch (\Exception $e) {
+            Log::error('Error fetching active quizzes: ' . $e->getMessage());
+            return response()->json(['message' => 'An error occurred', 'error' => $e->getMessage()], 500);
+        }
+    }
+
     public function showQuiz($quiz_id)
     {
         try {

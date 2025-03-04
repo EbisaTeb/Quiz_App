@@ -71,23 +71,27 @@ const isStudent = userRoles.includes('student');
           <span class="text-xs">Manage Questions</span>
         </router-link>
         
-        <router-link :to="{ name: 'app.autograde' }" class="flex items-center py-1 px-2 rounded transition-colors hover:bg-black/30 mb-2">
+        <!-- <router-link :to="{ name: 'app.autograde' }" class="flex items-center py-1 px-2 rounded transition-colors hover:bg-black/30 mb-2">
           <i class="pi pi-file mr-2 w-5 text-black-300"></i>
           <span class="text-xs">Auto Grade</span>
-        </router-link>
+        </router-link> -->
       </template>
 
       <!-- Student-Specific Links -->
       <template v-if="isStudent">
-        <router-link :to="{ name: 'app.quizsubmission', params: { id: userId } }" class="flex items-center py-1 px-2 rounded transition-colors hover:bg-black/30 mb-2">
+        <router-link :to="{ name: 'app.activequizzes' }" class="flex items-center py-1 px-2 rounded transition-colors hover:bg-black/30 mb-2">
+          <i class="pi pi-file mr-2 w-5 text-black-300"></i>
+          <span class="text-xs">Active Quizzes</span>
+        </router-link>
+        <!-- <router-link :to="{ name: 'app.quizsubmission', params: { id: userId } }" class="flex items-center py-1 px-2 rounded transition-colors hover:bg-black/30 mb-2">
           <i class="pi pi-file mr-2 w-5 text-black-300"></i>
           <span class="text-xs">Take Quizzes</span>
-        </router-link>
+        </router-link> -->
         
-        <router-link :to="{ name: 'app.submissions' }" class="flex items-center py-1 px-2 rounded transition-colors hover:bg-black/30 mb-2">
+        <!-- <router-link :to="{ name: 'app.submissions' }" class="flex items-center py-1 px-2 rounded transition-colors hover:bg-black/30 mb-2">
           <i class="pi pi-file mr-2 w-5 text-black-300"></i>
           <span class="text-xs">My Submissions</span>
-        </router-link>
+        </router-link> -->
       </template>
     </div>
   </div>
