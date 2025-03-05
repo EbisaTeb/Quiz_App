@@ -63,7 +63,7 @@ export default {
 <template>
   <div class="p-4">
     <Toast />
-    <h1 class="text-2xl font-bold mb-4">My Submissions</h1>
+    <h1 class="text-2xl font-bold mb-4">Taked Quiz</h1>
     <div v-if="isLoading" class="flex justify-center items-center">
       <i class="pi pi-spin pi-spinner text-4xl"></i>
     </div>

@@ -97,17 +97,18 @@ const fetchSubmission = async () => {
 onMounted(fetchSubmission);
 </script>
 <template>
-  <div class="p-4">
+  <div class="p-3">
     <div v-if="isLoading" class="flex justify-center items-center h-screen">
       <ProgressSpinner />
     </div>
 
-    <div v-else-if="submission" class="space-y-6">
+    <div v-else-if="submission" class="space-y-4">
       <!-- Quiz Header -->
-      <div class="bg-white p-4 rounded-lg shadow">
+      <div class="sticky top-0 z-50 bg-gray-100 flex justify-between items-center mb-6 p-4 rounded-lg shadow-md">
+
         <div class="flex justify-between items-center mb-4">
-          <h1 class="text-2xl font-bold">{{ submission.quiz.title }}</h1>
-          <div class="text-xl font-semibold text-primary">
+          <h1 class="font-bold mr-2">{{ submission.quiz.title }}</h1>
+          <div class="font-semibold text-primary">
             Score: {{ actualScore.toFixed(2) }}/{{ totalPossibleMarks }}
           </div>
         </div>
@@ -147,27 +148,24 @@ onMounted(fetchSubmission);
             </div>
 
             <!-- Matching Questions -->
-            <div v-if="question.type === 'matching'" class="space-y-4">
-              <DataTable :value="getMatchingPairs(question, getAnswerForQuestion(question.id))" 
-                        class="p-datatable-sm" 
-                        showGridlines>
+            <div v-if="question.type === 'matching'" class="space-y-4 mt-6">
+                <DataTable :value="getMatchingPairs(question, getAnswerForQuestion(question.id))" 
+                  class="p-datatable-sm" 
+                  showGridlines>
                 <Column field="left" header="Item" style="width: 35%"></Column>
                 <Column field="correctAnswer" header="Correct Match" style="width: 35%"></Column>
                 <Column field="studentAnswer" header="Your Match">
-                  <template #body="slotProps">
-                    <span :class="{
-                      'text-green-500': slotProps.data.isCorrect, 
-                      'text-red-500': !slotProps.data.isCorrect,
-                      'font-semibold': slotProps.data.isCorrect
-                    }">
-                      {{ slotProps.data.studentAnswer }}
-                      <!-- <i v-if="slotProps.data.isCorrect" class="pi pi-check ml-2"></i>
-                      <i v-else-if="slotProps.data.studentAnswer !== 'No answer'" class="pi pi-times ml-2"></i> -->
-                    </span>
-                  </template>
+                <template #body="slotProps">
+                <span :class="{
+                  'text-green-500': slotProps.data.isCorrect, 
+                  'text-red-500': !slotProps.data.isCorrect,
+                  'font-semibold': slotProps.data.isCorrect
+                }">
+                  {{ slotProps.data.studentAnswer }}
+                </span>
+                </template>
                 </Column>
-               
-              </DataTable>
+                </DataTable>
             </div>
           </div>
         </template>
