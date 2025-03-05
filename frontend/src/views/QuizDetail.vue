@@ -39,7 +39,7 @@ const goBack = () => {
         Back
       </Button>
     </div>
-    <div v-if="isLoading" class="text-center">Loading...</div>
+    <div v-if="isLoading" class="text-center">  <i class="pi pi-spin pi-spinner text-4xl"></i></div>
     <div v-else>
       <h3 class="text-xl font-semibold mb-4">{{ quiz.title }}</h3>
       <p><strong>Subject:</strong> {{ quiz.subject.name }}</p>

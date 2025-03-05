@@ -1,27 +1,4 @@
-<template>
-  <div class="p-4">
-    <Toast />
-    <h1 class="text-2xl font-bold mb-4">My Submissions</h1>
-    <div v-if="isLoading" class="flex justify-center items-center">
-      <i class="pi pi-spin pi-spinner text-4xl"></i>
-    </div>
-    <div v-else-if="error" class="text-red-500">
-      <p>{{ error }}</p>
-    </div>
-    <div v-else>
-      <DataTable :value="submissions" paginator :rows="10" :rowsPerPageOptions="[10, 20, 50]" responsiveLayout="scroll">
-        <Column field="quiz.title" header="Quiz Title" sortable />
-        <Column field="score" header="Score" sortable />
-        <Column field="created_at" header="Submission Date" sortable />
-        <Column header="Actions">
-          <template #body="slotProps">
-            <Button label="View" icon="pi pi-eye" @click="viewSubmission(slotProps.data.id)" />
-          </template>
-        </Column>
-      </DataTable>
-    </div>
-  </div>
-</template>
+
 
 <script>
 import { ref, onMounted } from 'vue';
@@ -61,7 +38,7 @@ export default {
 
     const viewSubmission = (submissionId) => {
       // Navigate to the submission detail view
-      router.push({ name: 'app.submissionDetail', params: { id: submissionId } });
+      router.push({ name: 'app.submissiondetail', params: { id: submissionId } });
     };
 
     onMounted(() => {
@@ -83,3 +60,27 @@ export default {
 <style scoped>
 /* Add your styles here */
 </style>
+<template>
+  <div class="p-4">
+    <Toast />
+    <h1 class="text-2xl font-bold mb-4">My Submissions</h1>
+    <div v-if="isLoading" class="flex justify-center items-center">
+      <i class="pi pi-spin pi-spinner text-4xl"></i>
+    </div>
+    <div v-else-if="error" class="text-red-500">
+      <p>{{ error }}</p>
+    </div>
+    <div v-else>
+      <DataTable :value="submissions" paginator :rows="10" :rowsPerPageOptions="[10, 20, 50]" responsiveLayout="scroll">
+        <Column field="quiz.title" header="Quiz Title" sortable />
+        <Column field="score" header="Score" sortable />
+        <Column field="created_at" header="Submission Date" sortable />
+        <Column header="Actions">
+          <template #body="slotProps">
+            <Button label="View" icon="pi pi-eye" @click="viewSubmission(slotProps.data.id)" />
+          </template>
+        </Column>
+      </DataTable>
+    </div>
+  </div>
+</template>

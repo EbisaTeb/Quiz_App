@@ -21,6 +21,7 @@ import ActiveQuizzes from "@/views/ActiveQuizzes.vue";
 import QuizSubmission from "@/views/QuizSubmission.vue";
 import Submissions from "@/views/Submissions.vue";
 import SubmissionDetail from "@/views/SubmissionDetail.vue";
+import SubmissionList from "@/views/SubmissionList.vue";
 
 const routes = [
   { path: "/", redirect: { name: "login" } }, // Redirect root to login
@@ -43,6 +44,7 @@ const routes = [
       { path: "quizsubmission/:id", name: "app.quizsubmission", component: QuizSubmission },
       { path: "submissions", name: "app.submissions", component: Submissions },
       { path: "submissions/:id", name: "app.submissiondetail", component: SubmissionDetail },
+      {path: "submissionslist",name:"app.submissionslist",component:SubmissionList}
     ],
   },
   {path:"/student",name:"student",component:Studentlayout},
