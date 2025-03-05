@@ -50,7 +50,7 @@
 
             <!-- Matching Questions -->
             <div v-if="question.type === 'matching'" class="space-y-4">
-              <DataTable :value="getMatchingPairs(getAnswerForQuestion(question.id))" 
+              <DataTable :value="getMatchingPairs(question, getAnswerForQuestion(question.id))" 
                         class="p-datatable-sm" 
                         showGridlines>
                 <Column field="left" header="Item" style="width: 35%"></Column>
@@ -58,9 +58,12 @@
                   <template #body="slotProps">
                     <span :class="{
                       'text-green-500': slotProps.data.isCorrect, 
-                      'text-red-500': !slotProps.data.isCorrect
+                      'text-red-500': !slotProps.data.isCorrect,
+                      'font-semibold': slotProps.data.isCorrect
                     }">
                       {{ slotProps.data.studentAnswer }}
+                      <i v-if="slotProps.data.isCorrect" class="pi pi-check ml-2"></i>
+                      <i v-else-if="slotProps.data.studentAnswer !== 'No answer'" class="pi pi-times ml-2"></i>
                     </span>
                   </template>
                 </Column>
@@ -93,18 +96,20 @@ import Column from 'primevue/column';
 import Tag from 'primevue/tag';
 import ProgressSpinner from 'primevue/progressspinner';
 
+interface MatchingQuestion {
+  id: number;
+  type: string;
+  content: string;
+  marks: number;
+  correct_answer: string;
+}
+
 interface Submission {
   id: number;
   quiz: {
     title: string;
     time_limit: number;
-    questions: Array<{
-      id: number;
-      type: string;
-      content: string;
-      marks: number;
-      correct_answer: string;
-    }>;
+    questions: MatchingQuestion[];
   };
   answers: Array<{
     id: number;
@@ -134,19 +139,20 @@ const getAnswerForQuestion = (questionId: number) => {
   return submission.value?.answers.find(a => a.question_id === questionId);
 };
 
-const getMatchingPairs = (answer: any) => {
+const getMatchingPairs = (question: MatchingQuestion, answer: any) => {
   try {
-    const correctPairs = JSON.parse(answer.question.correct_answer);
-    const studentAnswers = answer.student_answer;
-    const options = Object.values(correctPairs);
+    const correctPairs = JSON.parse(question.correct_answer);
+    const studentAnswers = answer.student_answer || {};
     
-    return Object.entries(studentAnswers).map(([leftItem, studentKey]) => {
-      const optionIndex = (studentKey as string).charCodeAt(0) - 97;
+    return Object.entries(correctPairs).map(([leftItem, correctAnswer]) => {
+      const studentAnswer = studentAnswers[leftItem] || 'No answer';
+      const isCorrect = studentAnswer === correctAnswer;
+
       return {
         left: leftItem,
-        studentAnswer: options[optionIndex] || 'Invalid selection',
-        correctAnswer: correctPairs[leftItem],
-        isCorrect: options[optionIndex] === correctPairs[leftItem]
+        studentAnswer: studentAnswer,
+        correctAnswer: correctAnswer,
+        isCorrect: isCorrect
       };
     });
   } catch (e) {
@@ -181,5 +187,10 @@ onMounted(fetchSubmission);
 </script>
 
 <style scoped>
-/* Add custom styles if needed */
+.pi-check {
+  color: #22c55e;
+}
+.pi-times {
+  color: #ef4444;
+}
 </style>
