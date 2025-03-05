@@ -1,92 +1,3 @@
-<template>
-  <div class="p-4">
-    <div v-if="isLoading" class="flex justify-center items-center h-screen">
-      <ProgressSpinner />
-    </div>
-
-    <div v-else-if="submission" class="space-y-6">
-      <!-- Quiz Header -->
-      <div class="bg-white p-4 rounded-lg shadow">
-        <div class="flex justify-between items-center mb-4">
-          <h1 class="text-2xl font-bold">{{ submission.quiz.title }}</h1>
-          <div class="text-xl font-semibold text-primary">
-            Score: {{ actualScore.toFixed(2) }}/{{ totalPossibleMarks }}
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-4 text-gray-600">
-          <div>Submitted: {{ formatDate(submission.created_at) }}</div>
-          <div>Time Limit: {{ submission.quiz.time_limit }} minutes</div>
-        </div>
-      </div>
-
-      <!-- Questions List -->
-      <div v-for="(question, index) in submission.quiz.questions" 
-           :key="question.id" 
-           class="bg-white p-6 rounded-lg shadow">
-        <template v-if="getAnswerForQuestion(question.id)">
-          <!-- Question Header -->
-          <div class="flex justify-between items-start mb-4">
-            <div class="flex items-center gap-2">
-              <span class="text-xl font-semibold">Q{{ index + 1 }}:</span>
-              <div v-html="question.content" class="text-lg"></div>
-            </div>
-            <Tag :severity="getAnswerForQuestion(question.id).is_correct ? 'success' : 'danger'" 
-                 :value="`${getAnswerForQuestion(question.id).marks_obtained}/${question.marks} marks`"/>
-          </div>
-
-          <!-- Answer Display -->
-          <div class="space-y-4">
-            <!-- Short Answer/MCQ -->
-            <div v-if="['short_answer', 'mcq'].includes(question.type)" class="space-y-2">
-              <div class="p-3 bg-gray-50 rounded">
-                <label class="text-sm font-medium text-gray-500">Your Answer:</label>
-                <p class="mt-1">{{ getAnswerForQuestion(question.id).student_answer }}</p>
-              </div>
-              <div class="p-3 bg-green-50 rounded">
-                <label class="text-sm font-medium text-green-600">Correct Answer:</label>
-                <p class="mt-1">{{ question.correct_answer }}</p>
-              </div>
-            </div>
-
-            <!-- Matching Questions -->
-            <div v-if="question.type === 'matching'" class="space-y-4">
-              <DataTable :value="getMatchingPairs(question, getAnswerForQuestion(question.id))" 
-                        class="p-datatable-sm" 
-                        showGridlines>
-                <Column field="left" header="Item" style="width: 35%"></Column>
-                <Column field="studentAnswer" header="Your Match">
-                  <template #body="slotProps">
-                    <span :class="{
-                      'text-green-500': slotProps.data.isCorrect, 
-                      'text-red-500': !slotProps.data.isCorrect,
-                      'font-semibold': slotProps.data.isCorrect
-                    }">
-                      {{ slotProps.data.studentAnswer }}
-                      <i v-if="slotProps.data.isCorrect" class="pi pi-check ml-2"></i>
-                      <i v-else-if="slotProps.data.studentAnswer !== 'No answer'" class="pi pi-times ml-2"></i>
-                    </span>
-                  </template>
-                </Column>
-                <Column field="correctAnswer" header="Correct Match" style="width: 35%"></Column>
-              </DataTable>
-            </div>
-          </div>
-        </template>
-
-        <!-- Unanswered Question -->
-        <div v-else class="text-red-500">
-          <span class="text-xl font-semibold">Q{{ index + 1 }}:</span>
-          <span class="ml-2">No answer submitted for this question</span>
-        </div>
-      </div>
-    </div>
-
-    <div v-else-if="error" class="p-4 bg-red-50 text-red-600 rounded">
-      {{ error }}
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
@@ -185,12 +96,95 @@ const fetchSubmission = async () => {
 
 onMounted(fetchSubmission);
 </script>
+<template>
+  <div class="p-4">
+    <div v-if="isLoading" class="flex justify-center items-center h-screen">
+      <ProgressSpinner />
+    </div>
 
-<style scoped>
-.pi-check {
-  color: #22c55e;
-}
-.pi-times {
-  color: #ef4444;
-}
-</style>
+    <div v-else-if="submission" class="space-y-6">
+      <!-- Quiz Header -->
+      <div class="bg-white p-4 rounded-lg shadow">
+        <div class="flex justify-between items-center mb-4">
+          <h1 class="text-2xl font-bold">{{ submission.quiz.title }}</h1>
+          <div class="text-xl font-semibold text-primary">
+            Score: {{ actualScore.toFixed(2) }}/{{ totalPossibleMarks }}
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4 text-gray-600">
+          <div>Submitted: {{ formatDate(submission.created_at) }}</div>
+          <div>Time Limit: {{ submission.quiz.time_limit }} minutes</div>
+        </div>
+      </div>
+
+      <!-- Questions List -->
+      <div v-for="(question, index) in submission.quiz.questions" 
+           :key="question.id" 
+           class="bg-white p-6 rounded-lg shadow">
+        <template v-if="getAnswerForQuestion(question.id)">
+          <!-- Question Header -->
+          <div class="flex justify-between items-start mb-4">
+            <div class="flex items-center gap-2">
+              <span class="text-xl font-semibold">Q{{ index + 1 }}:</span>
+              <div v-html="question.content" class="text-lg"></div>
+            </div>
+            <Tag :severity="getAnswerForQuestion(question.id).is_correct ? 'success' : 'danger'" 
+                 :value="`${getAnswerForQuestion(question.id).marks_obtained}/${question.marks} marks`"/>
+          </div>
+
+          <!-- Answer Display -->
+          <div class="space-y-4">
+            <!-- Short Answer/MCQ -->
+            <div v-if="['short_answer', 'mcq'].includes(question.type)" class="space-y-2">
+              <div class="p-3 bg-gray-50 rounded">
+                <label class="text-sm font-medium text-gray-500">Your Answer:</label>
+                <p class="mt-1">{{ getAnswerForQuestion(question.id).student_answer }}</p>
+              </div>
+              <div class="p-3 bg-green-50 rounded">
+                <label class="text-sm font-medium text-green-600">Correct Answer:</label>
+                <p class="mt-1">{{ question.correct_answer }}</p>
+              </div>
+            </div>
+
+            <!-- Matching Questions -->
+            <div v-if="question.type === 'matching'" class="space-y-4">
+              <DataTable :value="getMatchingPairs(question, getAnswerForQuestion(question.id))" 
+                        class="p-datatable-sm" 
+                        showGridlines>
+                <Column field="left" header="Item" style="width: 35%"></Column>
+                <Column field="correctAnswer" header="Correct Match" style="width: 35%"></Column>
+                <Column field="studentAnswer" header="Your Match">
+                  <template #body="slotProps">
+                    <span :class="{
+                      'text-green-500': slotProps.data.isCorrect, 
+                      'text-red-500': !slotProps.data.isCorrect,
+                      'font-semibold': slotProps.data.isCorrect
+                    }">
+                      {{ slotProps.data.studentAnswer }}
+                      <!-- <i v-if="slotProps.data.isCorrect" class="pi pi-check ml-2"></i>
+                      <i v-else-if="slotProps.data.studentAnswer !== 'No answer'" class="pi pi-times ml-2"></i> -->
+                    </span>
+                  </template>
+                </Column>
+               
+              </DataTable>
+            </div>
+          </div>
+        </template>
+
+        <!-- Unanswered Question -->
+        <div v-else class="text-red-500">
+          <span class="text-xl font-semibold">Q{{ index + 1 }}:</span>
+          <span class="ml-2">No answer submitted for this question</span>
+        </div>
+      </div>
+    </div>
+
+    <div v-else-if="error" class="p-4 bg-red-50 text-red-600 rounded">
+      {{ error }}
+    </div>
+  </div>
+</template>
+
+
+
