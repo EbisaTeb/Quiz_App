@@ -84,7 +84,7 @@ const submitQuiz = async () => {
         student_answer: answers.value[questionId]
       }))
     });
-    toast.add({ severity: 'success', summary: 'Success', detail: `Quiz submitted successfully! Your score: ${response.data.score}`, life: 3000 });
+    toast.add({ severity: 'success', summary: 'Success', detail: `Quiz submitted successfully!`, life: 3000 });
     router.push({ name: 'app.activequizzes' });
   } catch (err) {
     console.error('Error submitting quiz:', err);
@@ -93,6 +93,7 @@ const submitQuiz = async () => {
     isSubmitting.value = false;
   }
 };
+
 
 const goBack = () => {
   if (currentQuestionIndex.value > 0) {
@@ -128,7 +129,9 @@ const setAnswer = (questionId: string, pairLeftValue: string, value: string) => 
   }
   answers.value[questionId][pairLeftValue] = value;
 };
-
+const isQuizComplete = computed(() => {
+  return quiz.value?.questions.every(q => answers.value[q.id] !== undefined);
+});
 onMounted(() => {
   if (authStore.isAuthenticated && authStore.user.roles.some((role: { name: string }) => role.name === 'student')) {
     fetchQuiz();
@@ -202,7 +205,7 @@ onMounted(() => {
 
   <Button v-if="currentQuestionIndex < quiz.questions.length - 1" label="Next" icon="pi pi-arrow-right" @click="goNext" class="p-button-secondary" />
 
-  <Button v-if="currentQuestionIndex === quiz.questions.length - 1" label="Submit" icon="pi pi-check" @click="submitQuiz"  class="p-button-success" :loading="isSubmitting" />
+  <Button v-if="currentQuestionIndex === quiz.questions.length - 1" label="Submit" icon="pi pi-check" @click="submitQuiz"  class="p-button-success" :loading="isSubmitting" :disabled="!isQuizComplete" />
 </div>
 
       </div>
