@@ -6,7 +6,9 @@ import Button from 'primevue/button';
 import Toast from 'primevue/toast';
 import { useToast } from 'primevue/usetoast';
 import { useAuthStore } from '@/stores/auth';
-
+import  InputText from 'primevue/inputtext';
+import RadioButton from 'primevue/radiobutton';
+import Dropdown from 'primevue/dropdown';
 interface Quiz {
   id: number;
   time_limit: number;
@@ -137,19 +139,11 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="p-4">
+  <div class="p-3">
     <Toast />
-    <div class="sticky top-0 bg-gray-100 flex justify-between items-center mb-6 p-4 rounded-lg shadow-md">
-      <h1 class="text-2xl font-bold">Quiz Submission</h1>
-      <Button 
-        @click="goBack" 
-        icon="pi pi-arrow-left" 
-        class="p-button-text"
-        tooltip="Go back to the previous page" 
-        tooltipOptions="{ position: 'top' }"
-      >
-        Back
-      </Button>
+    <div class="sticky top-0 bg-gray-100 flex justify-between items-center mb-3 p-3 rounded-lg shadow-md">
+      <h1 class="text-2xl font-bold">Time Left</h1>
+
       <div class="text-xl font-bold">{{ formattedTime }}</div>
     </div>
     <div v-if="isLoading" class="flex justify-center items-center">
@@ -165,50 +159,52 @@ onMounted(() => {
             <h3 class="font-semibold"><strong>{{ index + 1 }}.</strong> {{ question.content }} <strong>({{ question.marks }} marks) </strong></h3>
             <div v-if="question.type === 'mcq'">
               <div v-for="option in question.options" :key="option.id">
-              
-
-                <input type="radio" :name="`question-${question.id}`" :value="option.content" v-model="answers[question.id]" />
-                <label class="ml-5">{{ option.content }}</label>
-              </div>
+  <RadioButton 
+    :inputId="`option-${question.id}-${option.id}`" 
+    :name="`question-${question.id}`" 
+    :value="option.content" 
+    v-model="answers[question.id]" 
+  />
+  <label :for="`option-${question.id}-${option.id}`" class="ml-5">{{ option.content }}</label>
+</div>
             </div>
             <div v-else-if="question.type === 'short_answer'">
-              <input type="text" v-model="answers[question.id]" class="w-full p-2 border rounded" />
+              <InputText type="text" v-model="answers[question.id]" class="w-full p-2 border rounded" />
             </div>
-            <div v-else-if="question.type === 'matching'">
-              <div class="flex">
-                <div class="w-1/2">
-                  <h4>Left Side (Numbers)</h4>
-                  <ul>
-                    <li v-for="(pair, index) in question.matching_pairs" :key="pair.id">
-                      {{ index + 1 }}. {{ pair.left_value }}
-                    </li>
-                  </ul>
-                </div>
-                <div class="w-1/2">
-                  <h4>Right Side (Letters)</h4>
-                  <ul>
-                    <li v-for="(pair, index) in question.matching_pairs" :key="pair.id">
-                      {{ String.fromCharCode(65 + index) }}. {{ pair.right_value }}
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              <div>
-                <h4>User Input Field</h4>
-                <div v-for="(pair, index) in question.matching_pairs" :key="pair.id" class="mb-2">
-                  <label>{{ index + 1 }}. </label>
-                  <input type="text" :value="getAnswer(question.id.toString(), pair.left_value)" @input="setAnswer(question.id.toString(), pair.left_value, ($event.target as HTMLInputElement).value)" class="w-full p-2 border rounded" />
-                </div>
-              </div>
-            </div>
+            <div v-else-if="question.type === 'matching'" class="flex">
+  <div class="w-full">
+    <div v-for="(pair, index) in question.matching_pairs" :key="pair.id" class="flex items-center mb-2">
+      <span class="w-6 text-center">{{ index + 1 }}.</span>
+      <Dropdown
+  :modelValue="getAnswer(question.id.toString(), pair.left_value)"
+  @update:modelValue="(value: string) => setAnswer(question.id.toString(), pair.left_value, value)"
+  :options="question.matching_pairs.map((p, idx) => ({
+    value: p.right_value,
+    label: String.fromCharCode(65 + idx)
+  }))"
+  optionLabel="label"
+  optionValue="value"
+  placeholder="Select"
+  class="mx-2 max-w-sm"
+/>
+      <span class="w-1/2 ml-2">{{ pair.left_value }}</span>
+      <span class="w-1/2 text-gray-600">
+        {{ String.fromCharCode(65 + index) }}. {{ pair.right_value }}
+      </span>
+    </div>
+  </div>
+</div>
           </div>
         </div>
 
         <div class="flex justify-between mt-4">
-          <Button label="Back" icon="pi pi-arrow-left" @click="goBack" class="p-button-secondary" :disabled="currentQuestionIndex === 0" />
-          <Button label="Next" icon="pi pi-arrow-right" @click="goNext" class="p-button-secondary" :disabled="currentQuestionIndex === quiz.questions.length - 1" />
-          <Button label="Submit" icon="pi pi-check" @click="submitQuiz" class="p-button-success" :loading="isSubmitting" />
-        </div>
+  <Button label="Back" icon="pi pi-arrow-left"  @click="goBack" class="p-button-secondary" :disabled="currentQuestionIndex === 0" />
+
+  <Button v-if="currentQuestionIndex < quiz.questions.length - 1" label="Next" icon="pi pi-arrow-right" @click="goNext" class="p-button-secondary" />
+
+  <Button v-if="currentQuestionIndex === quiz.questions.length - 1" label="Submit" icon="pi pi-check" @click="submitQuiz"  class="p-button-success" :loading="isSubmitting" />
+</div>
+
       </div>
     </div>
   </div>
