@@ -6,6 +6,7 @@ use App\Http\Controllers\ClassController;
 use App\Http\Controllers\GradingController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\QuizController;
+use App\Http\Controllers\ShortAnswerScoring;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\SubmissionController;
@@ -58,6 +59,8 @@ Route::middleware('auth:api', 'approved')->group(function () {
         // Academic management
         Route::apiResource('subjects', SubjectController::class);
         Route::apiResource('classes', ClassController::class);
+
+        Route::get('/submissions', [SubmissionController::class, 'index']);
     });
 
     // Teacher routes
@@ -71,15 +74,18 @@ Route::middleware('auth:api', 'approved')->group(function () {
         Route::get('quizzes/{quiz}/questions', [QuestionController::class, 'getQuizQuestions']);
         Route::get('quizzes/{quiz_id}/questions', [QuestionController::class, 'getQuizQuestions']);
 
-
-
         // Question routes
-
         Route::get('/quiz/teacher-quizzes', [QuestionController::class, 'getTeacherQuizzes']);
         Route::post('/questions', [QuestionController::class, 'addQuestions']);
         Route::put('/questions/{id}', [QuestionController::class, 'updateQuestion']);
         Route::delete('/questions/{id}', [QuestionController::class, 'deleteQuestion']);
         Route::get('/questions/{id}', [QuestionController::class, 'getQuestion']);
+        // Route::post('/submissions/{submission}/questions/{question}/score', [SubmissionController::class, 'updateShortAnswerScore']);
+        // Route::get('/submissions', [SubmissionController::class, 'index']);
+
+        Route::get('/teacher/quizzes', [ShortAnswerScoring::class, 'getTeacherQuizzes']);
+        Route::get('/quiz/{quizId}/short-answer-submissions', [ShortAnswerScoring::class, 'getSubmissionShortAnswer']);
+        Route::post('/submission/{submissionId}/question/{questionId}/score', [ShortAnswerScoring::class, 'updateShortAnswerScore']);
     });
 
     // Student routes
