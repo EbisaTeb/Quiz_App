@@ -237,4 +237,30 @@ class SubmissionController extends Controller
             ->whereIn('class_id', $quiz->classes->pluck('id'))
             ->exists();
     }
+
+    public function updateShortAnswerScore(Request $request, $submissionId, $questionId)
+    {
+        try {
+            $validated = $request->validate([
+                'score' => 'required|numeric|min:0',
+            ]);
+
+            $submission = QuizAttempt::findOrFail($submissionId);
+            $answer = $submission->answers()->where('question_id', $questionId)->firstOrFail();
+
+            $answer->update([
+                'marks_obtained' => $validated['score'],
+                'is_correct' => $validated['score'] > 0,
+            ]);
+
+            // Update total score
+            $totalScore = $submission->answers->sum('marks_obtained');
+            $submission->update(['score' => $totalScore]);
+
+            return response()->json(['message' => 'Score updated successfully'], 200);
+        } catch (\Exception $e) {
+            Log::error('Error updating score: ' . $e->getMessage());
+            return response()->json(['message' => 'An error occurred', 'error' => $e->getMessage()], 500);
+        }
+    }
 }

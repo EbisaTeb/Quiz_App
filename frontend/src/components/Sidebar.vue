@@ -72,6 +72,11 @@ const isStudent = userRoles.includes('student');
           <span class="text-xs">Manage Questions</span>
         </router-link>
         
+        <router-link :to="{ name: 'app.shortanswerscoring' }" class="flex items-center py-1 px-2 rounded transition-colors hover:bg-black/30 mb-2">
+          <span class="mr-2 text-black-300"><ClipboardDocumentCheckIcon class="w-5" /></span>
+          <span class="text-xs">Short Answer Scoring</span>
+        </router-link>
+        
         <!-- <router-link :to="{ name: 'app.autograde' }" class="flex items-center py-1 px-2 rounded transition-colors hover:bg-black/30 mb-2">
           <i class="pi pi-file mr-2 w-5 text-black-300"></i>
           <span class="text-xs">Auto Grade</span>
