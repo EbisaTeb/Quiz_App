@@ -50,6 +50,7 @@ class ShortAnswerScoring extends Controller
                         return [
                             'answer_id' => $answer->id,
                             'question_id' => $answer->question_id,
+                            'question' => $answer->question->content,
                             'student_answer' => $answer->student_answer,
                             'correct_answer' => $answer->question->correct_answer,
                             'marks_obtained' => $answer->marks_obtained,
