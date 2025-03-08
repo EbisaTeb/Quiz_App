@@ -6,6 +6,12 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import InputNumber from 'primevue/inputnumber';
 import Button from 'primevue/button';
+import { useToast } from 'primevue/usetoast';
+import Toast from 'primevue/toast';
+
+// const toast = useToast();
+// const isLoading = ref(true);
+// const isSubmitting = ref(false);
 
 interface Quiz {
   id: number;
@@ -18,6 +24,7 @@ interface Answer {
   student_answer: string;
   marks_obtained: number;
   correct_answer: string;
+  max_marks: number;
 }
 
 interface Submission {
@@ -79,6 +86,7 @@ export default {
 
 <template>
   <div class="p-4">
+    <!-- <Toast /> -->
     <h2 class="text-2xl font-bold mb-4">Select a Quiz</h2>
     <Dropdown 
       v-model="selectedQuiz" 
@@ -91,6 +99,9 @@ export default {
 
     <div v-if="submissions.length" class="mt-6">
       <h2 class="text-xl font-semibold mb-4">Short Answer Submissions</h2>
+      <div v-if="isLoading" class="flex justify-center items-center">
+      <i class="pi pi-spin pi-spinner text-4xl"></i>
+    </div>
       <DataTable :value="submissions">
         <Column field="student_name" header="Student">
           <template #body="{ data }">
@@ -116,6 +127,7 @@ export default {
                 <InputNumber 
                   v-model="answer.marks_obtained" 
                   :min="0" 
+                  :max="answer.max_marks"
                   class="w-32"
                 />
                 <Button 

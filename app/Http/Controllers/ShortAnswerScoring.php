@@ -53,6 +53,7 @@ class ShortAnswerScoring extends Controller
                             'student_answer' => $answer->student_answer,
                             'correct_answer' => $answer->question->correct_answer,
                             'marks_obtained' => $answer->marks_obtained,
+                            'max_marks' => $answer->question->marks,
                         ];
                     }),
                 ];
@@ -67,13 +68,13 @@ class ShortAnswerScoring extends Controller
     public function updateShortAnswerScore(Request $request, $submissionId, $questionId)
     {
         try {
-            $validated = $request->validate([
-                'score' => 'required|numeric|min:0',
-
-            ]);
-
             $submission = QuizAttempt::findOrFail($submissionId);
             $answer = $submission->answers()->where('question_id', $questionId)->firstOrFail();
+            $maxMarks = $answer->question->marks;
+
+            $validated = $request->validate([
+                'score' => 'required|numeric|min:0|max:' . $maxMarks,
+            ]);
 
             $answer->update([
                 'marks_obtained' => $validated['score'],
