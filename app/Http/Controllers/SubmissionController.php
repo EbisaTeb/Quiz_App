@@ -239,7 +239,7 @@ class SubmissionController extends Controller
 
             $submissions = QuizAttempt::where('quiz_id', $quiz_id)
                 ->with('student:id,name') // Assuming the student model has 'id' and 'name' attributes
-                ->get(['student_id', 'score']);
+                ->get(['id', 'student_id', 'score']); // Include 'id' for submission ID
 
             return response()->json($submissions);
         } catch (\Exception $e) {
