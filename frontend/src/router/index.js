@@ -23,6 +23,8 @@ import Submissions from "@/views/Submissions.vue";
 import SubmissionDetail from "@/views/SubmissionDetail.vue";
 import SubmissionList from "@/views/SubmissionList.vue";
 import ShortAnswerScoring from "@/views/ShortAnswerScoring.vue";
+import AdminSeeStudentscore from "@/views/AdminSeeStudentscore.vue";
+import TeacherSeeStudentscore from "@/views/TeacherSeeStudentscore.vue";
 
 const routes = [
   { path: "/", redirect: { name: "login" } }, // Redirect root to login
@@ -47,6 +49,9 @@ const routes = [
       { path: "submissions/:id", name: "app.submissiondetail", component: SubmissionDetail },
       {path: "submissionslist",name:"app.submissionslist",component:SubmissionList},
       { path: "short-answer-scoring", name: "app.shortanswerscoring", component: ShortAnswerScoring },
+      { path: "admin_see_studentscore", name: "app.admin_see_studentscore", component: AdminSeeStudentscore },
+      { path: "teacher_see_studentscore", name: "app.teacher_see_studentscore", component: TeacherSeeStudentscore },
+      
     ],
   },
   {path:"/student",name:"student",component:Studentlayout},

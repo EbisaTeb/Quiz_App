@@ -14,31 +14,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class SubmissionController extends Controller
 {
-    public function fetchStudentQuizzes()
-    {
-        try {
-            $user = Auth::user();
-
-            if (!$user->hasRole('student')) {
-                return response()->json(['message' => 'Unauthorized'], 403);
-            }
-
-            $quizzes = Quiz::whereHas('classes.students', function ($query) use ($user) {
-                $query->where('student_id', $user->id);
-            })
-                ->where('is_published', true)
-                ->where('start_time', '<=', now())
-                ->where('end_time', '>=', now())
-                ->with(['classes', 'subject'])
-                ->get();
-
-            return response()->json($quizzes);
-        } catch (\Exception $e) {
-            Log::error('Error fetching student quizzes: ' . $e->getMessage());
-            return response()->json(['message' => 'An error occurred', 'error' => $e->getMessage()], 500);
-        }
-    }
-
+    //fetch active quiz for student
     public function fetchActiveQuizzes()
     {
         try {
@@ -66,7 +42,7 @@ class SubmissionController extends Controller
             return response()->json(['message' => 'An error occurred', 'error' => $e->getMessage()], 500);
         }
     }
-
+    // show Activate quiz question  to student
     public function showQuiz($quiz_id)
     {
         try {
@@ -98,6 +74,7 @@ class SubmissionController extends Controller
         }
     }
 
+    // take the quiz by stuednt
     public function submitQuiz(Request $request, Quiz $quiz)
     {
         try {
@@ -127,7 +104,7 @@ class SubmissionController extends Controller
                     'question_id' => $answerData['question_id'],
                     'student_answer' => $answerData['student_answer'],
                     'is_correct' => false, // Initial value
-                    'marks_obtained' => 0, // Initial value
+                    'marks_obtained' => $answerData['student_answer'] === null ? null : 0, // Null for short answer
                 ]);
 
                 // Attach the answer to the quiz attempt
@@ -138,6 +115,7 @@ class SubmissionController extends Controller
             $this->autoGrade($quizAttempt);
 
             // Calculate the score
+            // NUll marks_obtained value for shortAnswer
             $totalScore = $quizAttempt->answers->sum('marks_obtained');
             $quizAttempt->update(['score' => $totalScore]);
 
@@ -162,12 +140,12 @@ class SubmissionController extends Controller
                     $score = ($answer->student_answer === $question->correct_answer) ? $question->marks : 0;
                     break;
 
-                case 'short_answer':
-                    $similarity = levenshtein(strtolower($answer->student_answer), strtolower($question->correct_answer));
-                    $maxLength = max(strlen($answer->student_answer), strlen($question->correct_answer));
-                    $accuracy = 1 - ($similarity / $maxLength);
-                    $score = ($accuracy >= 0.8) ? $question->marks : ($accuracy >= 0.5 ? $question->marks * 0.5 : 0);
-                    break;
+                // case 'short_answer':
+                //     $similarity = levenshtein(strtolower($answer->student_answer), strtolower($question->correct_answer));
+                //     $maxLength = max(strlen($answer->student_answer), strlen($question->correct_answer));
+                //     $accuracy = 1 - ($similarity / $maxLength);
+                //     $score = ($accuracy >= 0.8) ? $question->marks : ($accuracy >= 0.5 ? $question->marks * 0.5 : 0);
+                //     break;
 
                 case 'matching':
                     $correctPairs = MatchingPair::where('question_id', $question->id)->pluck('right_value', 'left_value');
@@ -194,6 +172,7 @@ class SubmissionController extends Controller
         $quizAttempt->update(['score' => $totalScore]);
     }
 
+    // show student his submission
     public function index()
     {
         try {
@@ -211,24 +190,89 @@ class SubmissionController extends Controller
             return response()->json(['message' => 'An error occurred', 'error' => $e->getMessage()], 500);
         }
     }
-
+    // show student submission details
     public function show(QuizAttempt $submission)
     {
         try {
             $user = Auth::user();
 
-            if ($user->id !== $submission->student_id) {
+            if ($user->hasRole('admin')) {
+                // Admin can view all submissions
+                $submission->load('quiz.questions', 'answers');
+                return response()->json($submission);
+            } elseif ($user->hasRole('teacher')) {
+                // Teacher can view submissions for their quizzes only
+                if ($submission->quiz->teacher_id !== $user->id) {
+                    return response()->json(['message' => 'Unauthorized'], 403);
+                }
+                $submission->load('quiz.questions', 'answers');
+                return response()->json($submission);
+            } elseif ($user->id === $submission->student_id) {
+                // Student can view their own submissions
+                $submission->load('quiz.questions', 'answers');
+                return response()->json($submission);
+            } else {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
-
-            $submission->load('quiz.questions', 'answers');
-
-            return response()->json($submission);
         } catch (\Exception $e) {
             Log::error('Error fetching submission: ' . $e->getMessage());
             return response()->json(['message' => 'An error occurred', 'error' => $e->getMessage()], 500);
         }
     }
+
+
+    // teacher see student score
+    public function teacherSeeStudentscore($quiz_id)
+    {
+        try {
+            $user = Auth::user();
+
+            if (!$user->hasRole('teacher')) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            $quiz = Quiz::findOrFail($quiz_id);
+
+            if ($quiz->teacher_id !== $user->id) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            $submissions = QuizAttempt::where('quiz_id', $quiz_id)
+                ->with('student:id,name') // Assuming the student model has 'id' and 'name' attributes
+                ->get(['student_id', 'score']);
+
+            return response()->json($submissions);
+        } catch (\Exception $e) {
+            Log::error('Error fetching student scores: ' . $e->getMessage());
+            return response()->json(['message' => 'An error occurred', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+
+    // admin see student score
+    public function adminSeeStudentscore($quiz_id)
+    {
+        try {
+            $user = Auth::user();
+
+            if (!$user->hasRole('admin')) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            $quiz = Quiz::findOrFail($quiz_id);
+
+            $submissions = QuizAttempt::where('quiz_id', $quiz_id)
+                ->with('student:id,name') // Assuming the student model has 'id' and 'name' attributes
+                ->get(['id', 'student_id', 'score']); // Include 'id' for submission ID
+
+            return response()->json($submissions);
+        } catch (\Exception $e) {
+            Log::error('Error fetching student scores: ' . $e->getMessage());
+            return response()->json(['message' => 'An error occurred', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+
 
     private function isStudentEnrolledInQuiz($studentId, Quiz $quiz)
     {
@@ -236,31 +280,5 @@ class SubmissionController extends Controller
             ->where('subject_id', $quiz->subject_id)
             ->whereIn('class_id', $quiz->classes->pluck('id'))
             ->exists();
-    }
-
-    public function updateShortAnswerScore(Request $request, $submissionId, $questionId)
-    {
-        try {
-            $validated = $request->validate([
-                'score' => 'required|numeric|min:0',
-            ]);
-
-            $submission = QuizAttempt::findOrFail($submissionId);
-            $answer = $submission->answers()->where('question_id', $questionId)->firstOrFail();
-
-            $answer->update([
-                'marks_obtained' => $validated['score'],
-                'is_correct' => $validated['score'] > 0,
-            ]);
-
-            // Update total score
-            $totalScore = $submission->answers->sum('marks_obtained');
-            $submission->update(['score' => $totalScore]);
-
-            return response()->json(['message' => 'Score updated successfully'], 200);
-        } catch (\Exception $e) {
-            Log::error('Error updating score: ' . $e->getMessage());
-            return response()->json(['message' => 'An error occurred', 'error' => $e->getMessage()], 500);
-        }
     }
 }

@@ -3,7 +3,6 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClassController;
-use App\Http\Controllers\GradingController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\ShortAnswerScoring;
@@ -22,6 +21,7 @@ Route::post('/login', [AuthController::class, 'login']);
 // Protected routes
 Route::middleware('auth:api', 'approved')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/submissions/{submission}', [SubmissionController::class, 'show']);
 
     // Admin routes
     Route::middleware('role:admin')->group(function () {
@@ -38,6 +38,7 @@ Route::middleware('auth:api', 'approved')->group(function () {
         // Quiz management
         Route::get('/admin/quizzes', [AdminController::class, 'getAllQuizzes']);
         Route::put('/admin/quizzes/{quiz}/status', [AdminController::class, 'updateQuizStatus']);
+        Route::get('/admin/quizzes/{quiz_id}/student-scores', [SubmissionController::class, 'adminSeeStudentscore']);
 
         // Teacher routes
         Route::get('/teachers/subjects-classes', [TeacherController::class, 'fechSubjectClass']);
@@ -59,8 +60,6 @@ Route::middleware('auth:api', 'approved')->group(function () {
         // Academic management
         Route::apiResource('subjects', SubjectController::class);
         Route::apiResource('classes', ClassController::class);
-
-        Route::get('/submissions', [SubmissionController::class, 'index']);
     });
 
     // Teacher routes
@@ -80,23 +79,20 @@ Route::middleware('auth:api', 'approved')->group(function () {
         Route::put('/questions/{id}', [QuestionController::class, 'updateQuestion']);
         Route::delete('/questions/{id}', [QuestionController::class, 'deleteQuestion']);
         Route::get('/questions/{id}', [QuestionController::class, 'getQuestion']);
-        // Route::post('/submissions/{submission}/questions/{question}/score', [SubmissionController::class, 'updateShortAnswerScore']);
-        // Route::get('/submissions', [SubmissionController::class, 'index']);
 
         Route::get('/teacher/quizzes', [ShortAnswerScoring::class, 'getTeacherQuizzes']);
         Route::get('/quiz/{quizId}/short-answer-submissions', [ShortAnswerScoring::class, 'getSubmissionShortAnswer']);
         Route::post('/submission/{submissionId}/question/{questionId}/score', [ShortAnswerScoring::class, 'updateShortAnswerScore']);
+        Route::get('/teacher/quizzes/{quiz_id}/student-scores', [SubmissionController::class, 'teacherSeeStudentscore']);
     });
 
     // Student routes
     Route::middleware('role:student')->group(function () {
         Route::get('/student/active-quizzes', [SubmissionController::class, 'fetchActiveQuizzes']);
-        Route::get('/student/quizzes', [SubmissionController::class, 'fetchStudentQuizzes']);
         Route::get('/student/quizzes/{quiz}', [SubmissionController::class, 'showQuiz']);
         Route::post('/quizzes/{quiz}/submit', [SubmissionController::class, 'submitQuiz']);
         Route::post('/quizzes/auto-grade', [SubmissionController::class, 'autoGrade']);
         Route::get('/submissions', [SubmissionController::class, 'index']);
-        Route::get('/submissions/{submission}', [SubmissionController::class, 'show']);
     });
 
     // Shared routes

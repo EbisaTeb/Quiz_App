@@ -124,8 +124,15 @@ class AdminController extends Controller
 
     public function getAllQuizzes()
     {
-        $quizzes = Quiz::with(['teacher', 'subject'])->get();
-        return response()->json($quizzes);
+        try {
+            $quizzes = Quiz::with(['teacher', 'subject'])->get();
+            return response()->json($quizzes);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to retrieve quizzes',
+                'error' => $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     public function updateQuizStatus(Request $request, Quiz $quiz)
