@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import axiosClient from '@/axios';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Tag from 'primevue/tag';
 import ProgressSpinner from 'primevue/progressspinner';
-
+const router = useRouter();
 interface MatchingQuestion {
   id: number;
   type: string;
@@ -45,7 +45,9 @@ const totalPossibleMarks = computed(() =>
 const actualScore = computed(() =>
   submission.value?.answers.reduce((sum, a) => sum + parseFloat(a.marks_obtained), 0) || 0
 );
-
+const goBack = () => {
+  router.back();
+};
 const getAnswerForQuestion = (questionId: number) => {
   return submission.value?.answers.find(a => a.question_id === questionId);
 };
@@ -116,6 +118,15 @@ onMounted(fetchSubmission);
           <div>Submitted: {{ formatDate(submission.created_at) }}</div>
           <div>Time Limit: {{ submission.quiz.time_limit }} minutes</div>
         </div>
+        <Button 
+        @click="goBack" 
+        icon="pi pi-arrow-left" 
+        class="p-button-text"
+        tooltip="Go back to the previous page" 
+        tooltipOptions="{ position: 'top' }"
+      >
+        Back
+      </Button>
       </div>
 
       <!-- Questions List -->

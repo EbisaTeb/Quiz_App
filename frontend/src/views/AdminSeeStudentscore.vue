@@ -9,6 +9,8 @@ import Dropdown from 'primevue/dropdown';
 import ProgressSpinner from 'primevue/progressspinner';
 import Button from 'primevue/button';
 import { useRouter } from 'vue-router';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
 
 interface Quiz {
   id: number;
@@ -33,7 +35,6 @@ const isLoading = ref(true);
 const error = ref<string | null>(null);
 const searchQuery = ref('');
 const router = useRouter();
-
 const fetchQuizzes = async () => {
   try {
     const response = await axiosClient.get('/admin/quizzes');
@@ -94,10 +95,19 @@ onMounted(() => {
     </div>
 
     <div v-else class="space-y-4">
-      <h1 class="text-2xl font-bold mb-4">Student Scores</h1>
-      <div class="flex justify-between mb-4">
-        <Dropdown v-model="selectedQuiz" :options="quizzes" optionLabel="title" placeholder="Select a Quiz" />
-        <InputText v-model="searchQuery" placeholder="Search by student name" />
+      <div class="flex flex-col md:flex-row sticky top-0 items-center justify-between mb-4 p-4 rounded-lg shadow-sm bg-gray-100 z-10">
+        <div class="mb-4 md:mb-0">
+          <h1 class="text-2xl font-bold mb-2">Student Scores</h1>
+          <Dropdown v-model="selectedQuiz" :options="quizzes" optionLabel="title" placeholder="Select a Quiz" class="w-full md:w-64" />
+        </div>
+        <div class="flex items-center space-x-2 w-full md:w-auto">
+          <IconField class="w-full md:w-64">
+            <InputIcon>
+              <i class="pi pi-search" />
+            </InputIcon>
+            <InputText v-model="searchQuery" placeholder="Search by student name" class="w-full" />
+          </IconField>
+        </div>
       </div>
       <DataTable :value="filteredScores" paginator :rows="10" :rowsPerPageOptions="[10, 20, 50]" responsiveLayout="scroll">
         <Column field="student.name" header="Student Name" sortable />
