@@ -183,7 +183,7 @@ function showError(message) {
 }
 
 function viewQuizDetail(quiz) {
-  router.push({ name: 'quizDetail', params: { id: quiz.id } });
+  router.push({ name: 'app.quizDetail', params: { id: quiz.id } });
 }
 </script>
 

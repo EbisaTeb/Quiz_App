@@ -26,6 +26,7 @@ import ShortAnswerScoring from "@/views/ShortAnswerScoring.vue";
 import AdminSeeStudentscore from "@/views/AdminSeeStudentscore.vue";
 import TeacherSeeStudentscore from "@/views/TeacherSeeStudentscore.vue";
 
+
 const routes = [
   { path: "/", redirect: { name: "login" } }, // Redirect root to login
   {
@@ -51,6 +52,7 @@ const routes = [
       { path: "short-answer-scoring", name: "app.shortanswerscoring", component: ShortAnswerScoring },
       { path: "admin_see_studentscore", name: "app.admin_see_studentscore", component: AdminSeeStudentscore },
       { path: "teacher_see_studentscore", name: "app.teacher_see_studentscore", component: TeacherSeeStudentscore },
+      { path: "/quiz/:id", name: "app.quizDetail", component: QuizDetail},
       
     ],
   },
@@ -59,7 +61,6 @@ const routes = [
   { path: "/signup",name:'signup',component:Signup,meta:{requiresGuest:true}},
   { path: "/request-password", name: "requestPassword", component: RequestPassword, meta: { requiresGuest: true } },
   { path: "/reset-password/:token", name: "resetPassword", component: ResetPassword, meta: { requiresGuest: true } },
-  { path: "/quiz/:id", name: "quizDetail", component: QuizDetail, meta: { requiresAuth: true } },
   { path: "/:pathMatch(.*)*", name: "notfound", component: NotFound },
 ];
 
