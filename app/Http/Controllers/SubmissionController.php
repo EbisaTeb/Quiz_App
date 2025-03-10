@@ -255,16 +255,40 @@ class SubmissionController extends Controller
     }
 
     // teacher release the total result
-    public function updateMarkRelease(Request $request, Answer $attempt)
+    public function updateScoreRelease(Request $request, $quiz_id)
+    {
+        try {
+            $validated = $request->validate([
+                'is_published' => 'required|boolean',
+            ]);
+
+            $user = Auth::user();
+
+            // Ensure the user is a teacher and owns the quiz
+            $quiz = Quiz::where('id', $quiz_id)->where('teacher_id', $user->id)->firstOrFail();
+
+            // Update the is_published value for all quiz attempts
+            QuizAttempt::where('quiz_id', $quiz_id)->update(['is_published' => $validated['is_published']]);
+
+            return response()->json(['message' => 'Score release updated successfully']);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Quiz not found or unauthorized'], 404);
+        } catch (\Exception $e) {
+            Log::error('Error updating score release: ' . $e->getMessage());
+            return response()->json(['message' => 'An error occurred', 'error' => $e->getMessage()], 500);
+        }
+    }
+    public function updateQuizStatus(Request $request, Quiz $quiz)
     {
         $validated = $request->validate([
             'is_published' => 'required|boolean',
         ]);
 
-        $attempt->is_published = $validated['is_published'];
-        $attempt->save();
+        $quiz->is_published = $validated['is_published'];
+        $quiz->published_by = $validated['is_published'] ? Auth::id() : null;
+        $quiz->save();
 
-        return response()->json(['message' => 'Score release updated successfully']);
+        return response()->json(['message' => 'Quiz status updated successfully']);
     }
 
 

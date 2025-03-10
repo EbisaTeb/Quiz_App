@@ -84,6 +84,7 @@ Route::middleware('auth:api', 'approved')->group(function () {
         Route::get('/quiz/{quizId}/short-answer-submissions', [ShortAnswerScoring::class, 'getSubmissionShortAnswer']);
         Route::post('/submission/{submissionId}/question/{questionId}/score', [ShortAnswerScoring::class, 'updateShortAnswerScore']);
         Route::get('/teacher/quizzes/{quiz_id}/student-scores', [SubmissionController::class, 'teacherSeeStudentscore']);
+        Route::post('/quizzes/{quiz_id}/release-score', [SubmissionController::class, 'updateScoreRelease']);
     });
 
     // Student routes
