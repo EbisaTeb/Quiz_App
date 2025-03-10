@@ -17,6 +17,7 @@
                 $table->foreignId('student_id')->constrained('users')->onDelete('cascade');
                 $table->decimal('score', 5, 2);
                 $table->timestamp('expires_at')->nullable();
+                $table->boolean('is_published')->default(false);
                 $table->timestamps();
 
                 // Prevent multiple attempts

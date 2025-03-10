@@ -10,7 +10,6 @@ class Answer extends Model
     protected $fillable = ['attempt_id', 'question_id', 'student_answer', 'is_correct', 'marks_obtained', 'is_published'];
     protected $casts = [
         'student_answer' => 'array',
-        'is_published' => 'boolean',
     ];
 
     public function attempt()

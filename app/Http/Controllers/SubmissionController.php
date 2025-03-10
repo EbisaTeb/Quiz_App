@@ -255,7 +255,7 @@ class SubmissionController extends Controller
     }
 
     // teacher release the total result
-    public function updateAnswer(Request $request, Answer $attempt)
+    public function updateMarkRelease(Request $request, Answer $attempt)
     {
         $validated = $request->validate([
             'is_published' => 'required|boolean',

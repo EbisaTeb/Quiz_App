@@ -18,7 +18,6 @@
                 $table->json('student_answer')->nullable(); // Allow NULL for unanswered questions
                 $table->boolean('is_correct')->default(false);
                 $table->decimal('marks_obtained', 5, 2);
-                $table->boolean('is_published')->default(false);
                 $table->timestamps();
 
                 // Prevent duplicate answers per attempt
