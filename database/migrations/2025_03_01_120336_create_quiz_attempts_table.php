@@ -15,7 +15,7 @@
                 $table->id();
                 $table->foreignId('quiz_id')->constrained()->onDelete('cascade');
                 $table->foreignId('student_id')->constrained('users')->onDelete('cascade');
-                $table->decimal('score', 5, 2)->default(0);
+                $table->decimal('score', 5, 2);
                 $table->timestamp('expires_at')->nullable();
                 $table->timestamps();
 

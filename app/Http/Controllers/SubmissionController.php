@@ -95,7 +95,7 @@ class SubmissionController extends Controller
             $quizAttempt = QuizAttempt::create([
                 'quiz_id' => $validated['quiz_id'],
                 'student_id' => $user->id,
-                'score' => 0, // Initial score
+                'score' => null, // Initial score
                 'expires_at' => now()->addMinutes($quiz->time_limit),
             ]);
 
@@ -104,7 +104,7 @@ class SubmissionController extends Controller
                     'question_id' => $answerData['question_id'],
                     'student_answer' => $answerData['student_answer'],
                     'is_correct' => false, // Initial value
-                    'marks_obtained' => $answerData['student_answer'] === null ? null : 0, // Null for short answer
+                    'marks_obtained' => null,  // Null for short answer
                 ]);
 
                 // Attach the answer to the quiz attempt
@@ -146,6 +146,10 @@ class SubmissionController extends Controller
                 //     $accuracy = 1 - ($similarity / $maxLength);
                 //     $score = ($accuracy >= 0.8) ? $question->marks : ($accuracy >= 0.5 ? $question->marks * 0.5 : 0);
                 //     break;
+                case 'short_answer':
+                    // Mark for teacher review, don't auto-grade
+                    $score = null;
+                    break;
 
                 case 'matching':
                     $correctPairs = MatchingPair::where('question_id', $question->id)->pluck('right_value', 'left_value');
@@ -162,11 +166,13 @@ class SubmissionController extends Controller
             }
 
             $answer->update([
-                'is_correct' => $score > 0,
+                'is_correct' => $score ? $score > 0 : false,
                 'marks_obtained' => $score,
             ]);
 
-            $totalScore += $score;
+            if ($score !== null) {
+                $totalScore += $score;
+            }
         }
 
         $quizAttempt->update(['score' => $totalScore]);
@@ -246,6 +252,19 @@ class SubmissionController extends Controller
             Log::error('Error fetching student scores: ' . $e->getMessage());
             return response()->json(['message' => 'An error occurred', 'error' => $e->getMessage()], 500);
         }
+    }
+
+    // teacher release the total result
+    public function updateAnswer(Request $request, Answer $attempt)
+    {
+        $validated = $request->validate([
+            'is_published' => 'required|boolean',
+        ]);
+
+        $attempt->is_published = $validated['is_published'];
+        $attempt->save();
+
+        return response()->json(['message' => 'Score release updated successfully']);
     }
 
 
