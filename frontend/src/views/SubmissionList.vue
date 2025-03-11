@@ -9,13 +9,14 @@ import Column from 'primevue/column';
 import Button from 'primevue/button';
 import axiosClient from '@/axios';
 import { useRouter } from 'vue-router';
-
+import ProgressSpinner from 'primevue/progressspinner';
 export default {
   components: {
     Toast,
     DataTable,
     Column,
-    Button
+    Button,
+    ProgressSpinner
   },
   setup() {
     const toast = useToast();
@@ -63,9 +64,9 @@ export default {
 <template>
   <div class="p-4">
     <Toast />
-    <h1 class="text-2xl font-bold mb-4">Taked Quiz</h1>
+    <h1 class="text-2xl font-bold mb-4">Completed Quiz</h1>
     <div v-if="isLoading" class="flex justify-center items-center">
-      <i class="pi pi-spin pi-spinner text-4xl"></i>
+      <ProgressSpinner />
     </div>
     <div v-else-if="error" class="text-red-500">
       <p>{{ error }}</p>

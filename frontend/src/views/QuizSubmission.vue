@@ -85,7 +85,7 @@ const submitQuiz = async () => {
       }))
     });
     toast.add({ severity: 'success', summary: 'Success', detail: `Quiz submitted successfully!`, life: 3000 });
-    router.push({ name: 'app.activequizzes' });
+    router.push({ name: 'app.submissionslist' });
   } catch (err) {
     console.error('Error submitting quiz:', err);
     toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to submit quiz', life: 5000 });
