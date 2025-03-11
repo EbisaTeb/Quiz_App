@@ -1,5 +1,3 @@
-
-
 <script>
 import { ref, onMounted } from 'vue';
 import { useToast } from 'primevue/usetoast';
@@ -28,7 +26,12 @@ export default {
     const fetchSubmissions = async () => {
       try {
         const response = await axiosClient.get('/submissions');
-        submissions.value = response.data;
+        submissions.value = response.data.map(submission => {
+          if (!submission.is_published) {
+            submission.score = 'Pending Review';
+          }
+          return submission;
+        });
         isLoading.value = false;
       } catch (err) {
         console.error('Error fetching submissions:', err);
@@ -78,7 +81,7 @@ export default {
         <Column field="created_at" header="Submission Date" sortable />
         <Column header="Actions">
           <template #body="slotProps">
-            <Button label="View" icon="pi pi-eye" @click="viewSubmission(slotProps.data.id)" />
+            <Button v-if="slotProps.data.is_published" label="View" icon="pi pi-eye" @click="viewSubmission(slotProps.data.id)" />
           </template>
         </Column>
       </DataTable>
