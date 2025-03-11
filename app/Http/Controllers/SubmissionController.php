@@ -24,9 +24,6 @@ class SubmissionController extends Controller
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
 
-
-            // dd($request->all());
-
             $quizzes = Quiz::whereHas('classes.students', function ($query) use ($user) {
                 $query->where('student_id', $user->id);
             })
@@ -245,7 +242,7 @@ class SubmissionController extends Controller
 
             $submissions = QuizAttempt::where('quiz_id', $quiz_id)
                 ->with('student:id,name') // Assuming the student model has 'id' and 'name' attributes
-                ->get(['id', 'student_id', 'score']); // Include 'id' for submission ID
+                ->get(['id', 'student_id', 'score', 'is_published']); // Include 'id' for submission ID
 
             return response()->json($submissions);
         } catch (\Exception $e) {
@@ -278,19 +275,6 @@ class SubmissionController extends Controller
             return response()->json(['message' => 'An error occurred', 'error' => $e->getMessage()], 500);
         }
     }
-    public function updateQuizStatus(Request $request, Quiz $quiz)
-    {
-        $validated = $request->validate([
-            'is_published' => 'required|boolean',
-        ]);
-
-        $quiz->is_published = $validated['is_published'];
-        $quiz->published_by = $validated['is_published'] ? Auth::id() : null;
-        $quiz->save();
-
-        return response()->json(['message' => 'Quiz status updated successfully']);
-    }
-
 
     // admin see student score
     public function adminSeeStudentscore($quiz_id)

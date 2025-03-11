@@ -9,8 +9,8 @@ import Button from 'primevue/button';
 import ProgressSpinner from 'primevue/progressspinner';
 import { useToast } from 'primevue/usetoast';
 import Toast from 'primevue/toast';
-import { z } from 'zod';
 import ToggleButton from 'primevue/togglebutton';
+import { z } from 'zod';
 
 interface Quiz {
   id: number;
@@ -32,6 +32,7 @@ interface Submission {
   id: number;
   student_name: string;
   answers: Answer[];
+  is_published: boolean;
 }
 
 export default {
@@ -80,6 +81,7 @@ export default {
           noSubmissions.value = true;
         } else {
           submissions.value = data;
+          isPublished.value = data[0].is_published; // Take initial value from the first submission
         }
       } catch (error) {
         console.error('Submission fetch error:', error);
@@ -90,18 +92,7 @@ export default {
       }
     };
 
-    const fetchQuizStatus = async () => {
-      if (!selectedQuiz.value) return;
-
-      try {
-        const { data } = await axiosClient.get(`/quizzes/${selectedQuiz.value}`);
-        isPublished.value = data.is_published;
-      } catch (error) {
-        console.error('Quiz status fetch error:', error);
-      }
-    };
-
-    const updateQuizStatus = async () => {
+    const updateScoreRelease = async () => {
       if (!selectedQuiz.value) return;
 
       try {
@@ -159,7 +150,6 @@ export default {
 
     watch(selectedQuiz, () => {
       fetchSubmissions();
-      fetchQuizStatus();
     });
 
     return { 
@@ -173,7 +163,7 @@ export default {
       updateScore,
       noSubmissions,
       isPublished,
-      updateQuizStatus
+      updateScoreRelease
     };
   }
 };
@@ -182,24 +172,24 @@ export default {
 <template>
   <div class="p-4">
     <Toast />
-  <div class="flex flex-col sticky top-0 items-center justify-center mb-4 p-2 rounded-lg shadow-sm bg-gray-100 z-10">
-    <h2 class="text-xl font-semibold mb-4">Select a Quiz</h2>
-    <Dropdown 
-      v-model="selectedQuiz" 
-      :options="quizzes" 
-      option-label="title" 
-      option-value="id" 
-      placeholder="Select Quiz"
-      class="w-full md:w-96"
-    />
-      <h2 class="text-xl font-semibold mb-4">Student Answer Question</h2>
-    <div v-if="selectedQuiz && !noSubmissions">
-      <div class="flex items-center gap-2">
-        <span>Release Results:</span>
-        <ToggleButton v-model="isPublished" onLabel="Yes" offLabel="No" onIcon="pi pi-check" offIcon="pi pi-times" @change="updateQuizStatus" />
+    <div class="flex flex-col sticky top-0 items-center justify-center mb-4 p-2 rounded-lg shadow-sm bg-gray-100 z-10">
+      <h2 class="text-xl font-semibold mb-4">Select a Quiz</h2>
+      <Dropdown 
+        v-model="selectedQuiz" 
+        :options="quizzes" 
+        option-label="title" 
+        option-value="id" 
+        placeholder="Select Quiz"
+        class="w-full md:w-96"
+      />
+        <h2 class="text-xl font-semibold mb-4">Student Answer Question</h2>
+      <div v-if="selectedQuiz && !noSubmissions">
+        <div class="flex items-center gap-2">
+          <span>Release Results:</span>
+          <ToggleButton v-model="isPublished" onLabel="Yes" offLabel="No" onIcon="pi pi-check" offIcon="pi pi-times" @change="updateScoreRelease" />
+        </div>
       </div>
     </div>
-  </div>
 
     <div v-if="isLoading" class="flex justify-center items-center h-32">
       <ProgressSpinner />
@@ -208,7 +198,7 @@ export default {
     <div v-else>
       <div v-if="noSubmissions" class="mt-6 text-center text-gray-500">
         <i class="pi pi-info-circle text-4xl mb-4"></i>
-        <p class="text-lg">No found Student takes a selected quiz short answer question.</p>
+        <p class="text-lg">No students have taken the selected quiz short answer question.</p>
       </div>
 
       <div v-else-if="submissions.length" class="mt-6">

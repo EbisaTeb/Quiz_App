@@ -23,7 +23,6 @@ class StudentSubject extends Pivot
     {
         return $this->belongsTo(Subject::class, 'subject_id');
     }
-
     public static function isStudentEnrolled($studentId, $subjectId, $classId)
     {
         return self::where('student_id', $studentId)
