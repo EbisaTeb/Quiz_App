@@ -52,6 +52,15 @@ class SubmissionController extends Controller
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
 
+            // Check if the student has already completed the quiz
+            $quizAttempt = QuizAttempt::where('quiz_id', $quiz_id)
+                ->where('student_id', $user->id)
+                ->first();
+
+            if ($quizAttempt) {
+                return response()->json(['message' => 'You have already completed this quiz.'], 403);
+            }
+
             $quiz = Quiz::with(['questions.options', 'questions.matchingPairs', 'classes', 'subject'])
                 ->whereHas('classes.students', function ($query) use ($user) {
                     $query->where('student_id', $user->id);
