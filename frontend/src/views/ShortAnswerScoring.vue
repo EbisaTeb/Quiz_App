@@ -10,6 +10,7 @@ import ProgressSpinner from 'primevue/progressspinner';
 import { useToast } from 'primevue/usetoast';
 import Toast from 'primevue/toast';
 import { z } from 'zod';
+import ToggleButton from 'primevue/togglebutton';
 
 interface Quiz {
   id: number;
@@ -41,7 +42,8 @@ export default {
     InputNumber,
     Button,
     ProgressSpinner,
-    Toast
+    Toast,
+    ToggleButton
   },
   setup() {
     const toast = useToast();
@@ -52,6 +54,7 @@ export default {
     const isSubmitting = ref(false);
     const submittingQuestionId = ref<number | null>(null);
     const noSubmissions = ref(false);
+    const isPublished = ref(false);
 
     const fetchQuizzes = async () => {
       try {
@@ -84,6 +87,29 @@ export default {
         submissions.value = [];
       } finally {
         isLoading.value = false;
+      }
+    };
+
+    const fetchQuizStatus = async () => {
+      if (!selectedQuiz.value) return;
+
+      try {
+        const { data } = await axiosClient.get(`/quizzes/${selectedQuiz.value}`);
+        isPublished.value = data.is_published;
+      } catch (error) {
+        console.error('Quiz status fetch error:', error);
+      }
+    };
+
+    const updateQuizStatus = async () => {
+      if (!selectedQuiz.value) return;
+
+      try {
+        await axiosClient.post(`/quizzes/${selectedQuiz.value}/release-score`, { is_published: isPublished.value });
+        toast.add({ severity: 'success', summary: 'Success', detail: 'Quiz status updated', life: 3000 });
+      } catch (error) {
+        console.error('Quiz status update error:', error);
+        toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to update quiz status', life: 3000 });
       }
     };
 
@@ -131,7 +157,10 @@ export default {
 
     onMounted(fetchQuizzes);
 
-    watch(selectedQuiz, fetchSubmissions);
+    watch(selectedQuiz, () => {
+      fetchSubmissions();
+      fetchQuizStatus();
+    });
 
     return { 
       quizzes,
@@ -142,7 +171,9 @@ export default {
       submittingQuestionId,
       validateScore,
       updateScore,
-      noSubmissions
+      noSubmissions,
+      isPublished,
+      updateQuizStatus
     };
   }
 };
@@ -161,7 +192,13 @@ export default {
       placeholder="Select Quiz"
       class="w-full md:w-96"
     />
-    <h2 class="text-xl font-semibold mb-4"> Stundent Answer Question </h2>
+      <h2 class="text-xl font-semibold mb-4">Student Answer Question</h2>
+    <div v-if="selectedQuiz && !noSubmissions">
+      <div class="flex items-center gap-2">
+        <span>Release Results:</span>
+        <ToggleButton v-model="isPublished" onLabel="Yes" offLabel="No" onIcon="pi pi-check" offIcon="pi pi-times" @change="updateQuizStatus" />
+      </div>
+    </div>
   </div>
 
     <div v-if="isLoading" class="flex justify-center items-center h-32">
