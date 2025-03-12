@@ -172,8 +172,9 @@ export default {
 <template>
   <div class="p-4">
     <Toast />
-    <div class="flex flex-col sticky top-0 items-center justify-center mb-4 p-2 rounded-lg shadow-sm bg-gray-100 z-10">
-      <h2 class="text-xl font-semibold mb-4">Select a Quiz</h2>
+    <div class="flex flex-col md:flex-row  md:mt-2 sticky top-0 items-center justify-between mb-4 p-2 rounded-lg shadow-sm bg-gray-100 z-10">
+      <div class="flex flex-col md:flex-row items-center gap-4">
+      <h2 class="text-xl font-semibold mb-4 md:mb-0">Select a Quiz</h2>
       <Dropdown 
         v-model="selectedQuiz" 
         :options="quizzes" 
@@ -182,12 +183,13 @@ export default {
         placeholder="Select Quiz"
         class="w-full md:w-96"
       />
-        <h2 class="text-xl font-semibold mb-4">Student Answer Question</h2>
-      <div v-if="selectedQuiz && !noSubmissions">
-        <div class="flex items-center gap-2">
-          <span>Release Results:</span>
-          <ToggleButton v-model="isPublished" onLabel="Yes" offLabel="No" onIcon="pi pi-check" offIcon="pi pi-times" @change="updateScoreRelease" />
-        </div>
+      </div>
+      <div v-if="selectedQuiz && !noSubmissions" class="flex flex-col md:flex-row items-center gap-4 mt-4 md:mt-0">
+      <h2 class="text-xl font-semibold mb-4 md:mb-0">Student Answer Question</h2>
+      <div class="flex items-center gap-2">
+        <span class="text-xl font-semibold mb-4 md:mb-0">Release Results:</span>
+        <ToggleButton v-model="isPublished" onLabel="Yes" offLabel="No" onIcon="pi pi-check" offIcon="pi pi-times" @change="updateScoreRelease" />
+      </div>
       </div>
     </div>
 
@@ -249,7 +251,7 @@ export default {
                   <small v-if="answer.error" class="p-error">{{ answer.error }}</small>
 
                   <Button 
-                    label="Update Points" 
+                    label="give points" 
                     icon="pi pi-check" 
                     class="w-fit"
                     :loading="isSubmitting && submittingQuestionId === answer.question_id"
