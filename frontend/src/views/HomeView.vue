@@ -72,7 +72,7 @@ const isStudent = userRoles.includes('student');
             </li>
             <li class="flex align-items-center py-3">
               <i class="pi pi-check-circle text-green-500 mr-3"></i>
-              Generate performance reports
+              Check Short Answer Questions.
             </li>
           </ul>
             <Button label="Manage Quizzes" icon="pi pi-arrow-right" 
