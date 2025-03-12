@@ -96,16 +96,16 @@ onMounted(() => {
 
     <div v-else class="space-y-4">
       <div class="flex flex-col md:flex-row sticky top-0 items-center justify-between mb-4 p-4 rounded-lg shadow-sm bg-gray-100 z-10">
-        <div class="mb-4 md:mb-0">
-          <h1 class="text-2xl font-bold mb-2">Student Scores</h1>
+        <div class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 w-full">
+          <h1 class="text-2xl font-bold mb-2 md:mb-0">Student Scores</h1>
           <Dropdown v-model="selectedQuiz" :options="quizzes" optionLabel="title" placeholder="Select a Quiz" class="w-full md:w-64" />
         </div>
-        <div class="flex items-center space-x-2 w-full md:w-auto">
+        <div class="flex items-center space-x-2 w-full md:w-auto mt-4 md:mt-0">
           <IconField class="w-full md:w-64">
-            <InputIcon>
-              <i class="pi pi-search" />
-            </InputIcon>
-            <InputText v-model="searchQuery" placeholder="Search by student name" class="w-full" />
+        <InputIcon>
+          <i class="pi pi-search" />
+        </InputIcon>
+        <InputText v-model="searchQuery" placeholder="Search by student name" class="w-full" />
           </IconField>
         </div>
       </div>

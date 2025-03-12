@@ -32,7 +32,7 @@ export const useAuthStore = defineStore('auth', () => {
         state.value.user = response.data.user;
         state.value.isAuthenticated = true;
         
-        await router.push({ name: 'app.dashboard' });
+        await router.push({ name: 'app.home' });
         return true;
       }
     } catch (error) {

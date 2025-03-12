@@ -25,6 +25,7 @@ import SubmissionList from "@/views/SubmissionList.vue";
 import ShortAnswerScoring from "@/views/ShortAnswerScoring.vue";
 import AdminSeeStudentscore from "@/views/AdminSeeStudentscore.vue";
 import TeacherSeeStudentscore from "@/views/TeacherSeeStudentscore.vue";
+import HomeView from "@/views/HomeView.vue";
 
 
 const routes = [
@@ -35,6 +36,7 @@ const routes = [
     component: AppLayout,
     meta: { requiresAuth: true },
     children: [
+      {path: "home", name: "app.home" , component: HomeView},
       { path: "dashboard", name: "app.dashboard", component: Dashboard },
       { path: "class", name: "app.class", component: Class},
       { path: "subject", name: "app.subject", component: Subject},
@@ -78,7 +80,7 @@ router.beforeEach(async (to, from, next) => {
   if (to.meta.requiresAuth && !store.isAuthenticated) {
     next({ name: "login" });
   } else if (to.meta.requiresGuest && store.isAuthenticated) {
-    next({ name: "app.dashboard" });
+    next({ name: "app.home" });
   } else {
     next();
   }

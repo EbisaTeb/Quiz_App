@@ -58,7 +58,7 @@ const handleLogin = async () => {
     });
 
     if (authStore.isAuthenticated) {
-      router.push({ name: 'app.dashboard' });
+      router.push({ name: 'app.home' });
     }
   } catch (error) {
     console.error('Login error:', error);
