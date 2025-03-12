@@ -2,7 +2,7 @@
 import { useAuthStore } from '@/stores/auth';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
-import { useRouter } from 'vue-router';
+import {useRouter } from 'vue-router';
 
 
 const router = useRouter();
