@@ -67,17 +67,17 @@ const isStudent = userRoles.includes('student');
       <!-- Teacher-Specific Links -->
       <template v-if="isTeacher">
         <router-link :to="{ name: 'app.home' }" class="flex items-center py-1 px-2 rounded transition-colors hover:bg-black/30 mb-2">
-          <span class="mr-2 text-black-300"><CubeIcon class="w-5" /></span>
+          <span class="mr-2 text-black-300"><HomeIcon class="w-5" /></span>
           <span class="text-xl">Home</span>
         </router-link>
         <router-link :to="{ name: 'app.quiz' }" class="flex items-center py-1 px-2 rounded transition-colors hover:bg-black/30 mb-2">
           <span class="mr-2 text-black-300"><ClipboardDocumentListIcon class="w-5" /></span>
-          <span class="text-xl">Manage Quizzes</span>
+          <span class="text-xl">Quizzes</span>
         </router-link>
         
         <router-link :to="{ name: 'app.question' }" class="flex items-center py-1 px-2 rounded transition-colors hover:bg-black/30 mb-2">
-          <span class="mr-2 text-black-300"><ClipboardDocumentCheckIcon class="w-5" /></span>
-          <span class="text-xl">Manage Questions</span>
+          <span class="mr-2 text-black-300"><ClipboardIcon class="w-5" /></span>
+          <span class="text-xl">Questions</span>
         </router-link>
         
         <router-link :to="{ name: 'app.shortanswerscoring' }" class="flex items-center py-1 px-2 rounded transition-colors hover:bg-black/30 mb-2">
@@ -85,7 +85,7 @@ const isStudent = userRoles.includes('student');
           <span class="text-xl">Short Answer</span>
         </router-link>
         <router-link :to="{ name: 'app.teacher_see_studentscore' }" class="flex items-center py-1 px-2 rounded transition-colors hover:bg-black/30 mb-2">
-          <span class="mr-2 text-black-300"><ClipboardDocumentListIcon class="w-5" /></span>
+          <span class="mr-2 text-black-300"><ClipboardDocumentCheckIcon class="w-5" /></span>
           <span class="text-xl">Student Result</span>
         </router-link>
 
