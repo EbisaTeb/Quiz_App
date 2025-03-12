@@ -19,7 +19,6 @@ import QuizDetail from "../views/QuizDetail.vue";
 import AdminQuizManagement from "@/views/AdminQuizManagement.vue";
 import ActiveQuizzes from "@/views/ActiveQuizzes.vue";
 import QuizSubmission from "@/views/QuizSubmission.vue";
-import Submissions from "@/views/Submissions.vue";
 import SubmissionDetail from "@/views/SubmissionDetail.vue";
 import SubmissionList from "@/views/SubmissionList.vue";
 import ShortAnswerScoring from "@/views/ShortAnswerScoring.vue";
@@ -48,7 +47,6 @@ const routes = [
       { path: "adminquizmanagement", name: "app.adminquizmanagement", component: AdminQuizManagement},
       { path: "active-quizzes", name: "app.activequizzes", component: ActiveQuizzes },
       { path: "quizsubmission/:id", name: "app.quizsubmission", component: QuizSubmission },
-      { path: "submissions", name: "app.submissions", component: Submissions },
       { path: "submissions/:id", name: "app.submissiondetail", component: SubmissionDetail },
       {path: "submissionslist",name:"app.submissionslist",component:SubmissionList},
       { path: "short-answer-scoring", name: "app.shortanswerscoring", component: ShortAnswerScoring },

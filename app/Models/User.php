@@ -35,66 +35,6 @@ class User extends Authenticatable
         return $this->roles()->where('name', $roleName)->exists();
     }
 
-    // public function createdQuizzes()
-    // {
-    //     return $this->hasMany(Quiz::class, 'created_by');
-    // }
-
-    // public function assignedQuizzes()
-    // {
-    //     return $this->belongsToMany(Quiz::class, 'quiz_student', 'student_id', 'quiz_id');
-    // }
-    // public function students()
-    // {
-    //     return $this->belongsToMany(User::class, 'teacher_student', 'teacher_id', 'student_id');
-    // }
-    // public function teachers()
-    // {
-    //     return $this->belongsToMany(User::class, 'teacher_student', 'student_id', 'teacher_id');
-    // }
-
-    // public function submissions()
-    // {
-    //     return $this->hasMany(Submission::class);
-    // }
-    // public function hasAnyRole($roles)
-    // {
-    //     return $this->roles()->whereIn('name', $roles)->exists();
-    // }
-
-    // // add the recent function to the User model
-
-    // public function taughtSubjects()
-    // {
-    //     return $this->belongsToMany(Subject::class, 'teacher_subject_class', 'teacher_id', 'subject_id')
-    //         ->withPivot('class_id');
-    // }
-    // public function taughtClasses()
-    // {
-    //     return $this->belongsToMany(ClassGroup::class, 'teacher_subject_class', 'teacher_id', 'class_id')
-    //         ->withPivot('subject_id');
-    // }
-
-    // public function enrolledClasses()
-    // {
-    //     return $this->belongsToMany(ClassGroup::class, 'student_class', 'student_id', 'class_id')
-    //         ->withTimestamps();
-    // }
-    // public function enrollSubjectsStudent()
-    // {
-    //     return $this->belongsToMany(Subject::class, 'student_subject', 'student_id', 'subject_id')
-    //         ->withPivot('class_id')
-    //         ->withTimestamps();
-    // }
-
-    // public function approvedBy()
-    // {
-    //     return $this->belongsTo(User::class, 'approved_by');
-    // }
-
-
-
-
     /**
      * The attributes that should be hidden for serialization.
      *
