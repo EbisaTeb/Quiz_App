@@ -108,19 +108,24 @@ async function updateName() {
                     <Avatar :image="user.avatar" size="xlarge" shape="circle"  />
                     <div class="">
                         <FileUpload 
-                            name="avatar" 
-                            accept="image/*"
-                            :customUpload="true"
-                            :auto="false"
-                            @select="updateAvatar"
-                            :maxFileSize="2097152"
-                            :disabled="isUploading"
-                        >
-                            <template #empty>
-                                <p>Drag & drop your new avatar here</p>
-                            </template>
-                        </FileUpload>
-                        <ProgressSpinner v-if="isUploading" style="width: 30px; height: 30px"/>
+                                        name="avatar" 
+                                        accept="image/*"
+                                        :customUpload="true"
+                                        mode="basic"
+                                        :auto="false"
+                                        @select="updateAvatar"
+                                        :maxFileSize="2097152"
+                                        :disabled="isUploading"
+                                        chooseLabel="Upload Avatar"
+                                        class="p-mb-2"
+                                        icon="pi pi-upload"
+                                    />
+                                    <small class="p-text-secondary">Max file size: 2MB (JPEG, PNG, GIF)</small>
+                                    <ProgressSpinner 
+                                        v-if="isUploading" 
+                                        style="width: 30px; height: 30px"
+                                      
+                                    />
                     </div>
                 </div>
 
