@@ -19,7 +19,7 @@ const menuItems = [
 
 // Functions
 function viewProfile() {
-  console.log('Navigating to profile...');
+  router.push({ name: 'app.profile' });
 }
 
 function logout() {

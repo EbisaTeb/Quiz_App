@@ -25,6 +25,7 @@ import ShortAnswerScoring from "@/views/ShortAnswerScoring.vue";
 import AdminSeeStudentscore from "@/views/AdminSeeStudentscore.vue";
 import TeacherSeeStudentscore from "@/views/TeacherSeeStudentscore.vue";
 import HomeView from "@/views/HomeView.vue";
+import Profile from "@/views/Profile.vue";
 
 
 const routes = [
@@ -53,6 +54,8 @@ const routes = [
       { path: "admin_see_studentscore", name: "app.admin_see_studentscore", component: AdminSeeStudentscore },
       { path: "teacher_see_studentscore", name: "app.teacher_see_studentscore", component: TeacherSeeStudentscore },
       { path: "/quiz/:id", name: "app.quizDetail", component: QuizDetail},
+      { path: "profile", name: "app.profile", component: Profile},
+
       
     ],
   },
