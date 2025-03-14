@@ -9,12 +9,14 @@ import Button from 'primevue/button';
 import FileUpload from 'primevue/fileupload';
 import Dialog from 'primevue/dialog';
 import Toast from 'primevue/toast';
+import ProgressSpinner from 'primevue/progressspinner';
 const authStore = useAuthStore();
 const toast = useToast();
 const user = ref({ ...authStore.user });
 const passwordDialog = ref(false);
 const newPassword = ref('');
 const confirmPassword = ref('');
+const isUploading = ref(false);
 
 function showSuccess(message) {
     toast.add({ severity: 'success', summary: 'Success', detail: message, life: 3000 });
@@ -25,16 +27,57 @@ function showError(message) {
 }
 
 async function updateAvatar(event) {
+    if (!event.files || event.files.length === 0) {
+        showError('Please select a file first');
+        return;
+    }
+
+    const file = event.files[0];
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    
+    // Client-side validation
+    if (!validTypes.includes(file.type)) {
+        showError('Invalid file type. Only JPG, PNG, and GIF are allowed.');
+        return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+        showError('File size too large (max 2MB)');
+        return;
+    }
+
     const formData = new FormData();
-    formData.append('avatar', event.files[0]);
+    formData.append('avatar', file);
 
     try {
-        const response = await axiosClient.post('/user/avatar', formData);
-        user.value.avatar = response.data.avatar;
+        isUploading.value = true;
+        const response = await axiosClient.post('/user/avatar', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+
+        // Force avatar update with cache buster
+        user.value.avatar = `${response.data.avatar}?${Date.now()}`;
+        authStore.user.avatar = user.value.avatar; // Update the auth store
         showSuccess('Avatar updated successfully');
     } catch (error) {
-        showError('Failed to update avatar');
+        console.error('Upload error:', error);
+        let message = 'Failed to update avatar';
+        
+        if (error.response) {
+            message = error.response.data?.message || 
+                     error.response.data?.error || 
+                     message;
+        } else if (error.request) {
+            message = 'Network error - please check your connection';
+        }
+
+        showError(message);
+    } finally {
+        isUploading.value = false;
     }
+
 }
 
 async function changePassword() {
@@ -80,13 +123,31 @@ async function updateName() {
                 <InputText id="email" v-model="user.email" disabled />
             </div>
             <div class="field col-12">
-                <label for="avatar">Avatar</label>
-                <img :src="user.avatar" alt="Avatar" class="profile-avatar" />
-                <FileUpload name="avatar" accept="image/*" customUpload :auto="true" @upload="updateAvatar" />
+            <label for="avatar">Avatar</label>
+            <div class="flex align-items-center gap-3">
+                <img 
+                    :src="user.avatar" 
+                    alt="Avatar" 
+                    class="profile-avatar"
+                    style="width: 100px; height: 100px; object-fit: cover"
+                />
+                <FileUpload 
+                    name="avatar" 
+                    accept="image/*"
+                    :customUpload="true"
+                    :auto="false"
+                    @select="updateAvatar"
+                    :maxFileSize="2097152"
+                    :disabled="isUploading"
+                >
+                    <template #empty>
+                        <p>Drag and drop files to here to upload.</p>
+                    </template>
+                </FileUpload>
+                <ProgressSpinner v-if="isUploading" style="width: 30px; height: 30px"/>
             </div>
-            <div class="field col-12">
-                <Button label="Change Password" icon="pi pi-key" @click="passwordDialog = true" />
-            </div>
+        </div>
+            
         </div>
 
         <Dialog v-model:visible="passwordDialog" header="Change Password" :modal="true" :style="{ width: '400px' }">

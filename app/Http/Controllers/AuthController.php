@@ -98,46 +98,59 @@ class AuthController extends Controller
 
     public function updateAvatar(Request $request)
     {
-        $request->validate([
-            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
+        try {
+            $request->validate([
+                'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            ]);
 
-        $user = $request->user();
-        $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $user = $request->user();
+            $avatarPath = Storage::disk('public')->putFile('avatars', $request->file('avatar'));
 
-        // Delete old avatar if exists
-        if ($user->avatar) {
-            Storage::disk('public')->delete($user->avatar);
+            // Delete old avatar if exists
+            if ($user->avatar) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+
+            $user->avatar = $avatarPath;
+            $user->save();
+
+            return response()->json(['avatar' => Storage::disk('public')->url($avatarPath)], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-
-        $user->avatar = $avatarPath;
-        $user->save();
-
-        return response()->json(['avatar' => $avatarPath], 200);
     }
 
     public function changePassword(Request $request)
     {
-        $request->validate([
-            'password' => 'required|min:6|confirmed',
-        ]);
+        try {
+            $request->validate([
+                'password' => 'required|min:6|confirmed',
+            ]);
 
-        $user = $request->user();
-        $user->password = Hash::make($request->password);
-        $user->save();
+            $user = $request->user();
+            $user->password = Hash::make($request->password);
+            $user->save();
 
-        return response()->json(['message' => 'Password changed successfully'], 200);
+            return response()->json(['message' => 'Password changed successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
+
     public function updateName(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-        ]);
+        try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+            ]);
 
-        $user = $request->user();
-        $user->name = $request->name;
-        $user->save();
+            $user = $request->user();
+            $user->name = $request->name;
+            $user->save();
 
-        return response()->json(['message' => 'Name updated successfully'], 200);
+            return response()->json(['message' => 'Name updated successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 }

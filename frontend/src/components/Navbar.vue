@@ -50,7 +50,7 @@ function logout() {
       <template #value>
         <div class="flex items-center">
           <Avatar 
-            :image="authStore.user?.profileImage || 'https://randomuser.me/api/portraits/men/34.jpg'" 
+            :image="authStore.user?.avatar ? `${authStore.user.avatar}?${Date.now()}` : 'https://randomuser.me/api/portraits/men/34.jpg'" 
             class="mr-2" 
             shape="circle" 
           />

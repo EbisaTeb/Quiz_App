@@ -14,6 +14,7 @@ use App\Http\Controllers\DashboardController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 // Public routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -28,7 +29,6 @@ Route::middleware('auth:api', 'approved')->group(function () {
     Route::post('/user/avatar', [AuthController::class, 'updateAvatar']);
     Route::post('/user/change-password', [AuthController::class, 'changePassword']);
     Route::post('/user/update-name', [AuthController::class, 'updateName']);
-
 
     // Admin routes
     Route::middleware('role:admin')->group(function () {
@@ -55,7 +55,6 @@ Route::middleware('auth:api', 'approved')->group(function () {
         Route::post('/teachers/assignments', [TeacherController::class, 'store']);
         Route::get('/teachers/{id}', [TeacherController::class, 'show']);
         Route::delete('/teachers/assignments/{teacher}', [TeacherController::class, 'destroy']);
-
 
         // Student routes
         Route::get('/students/subjects-classes', [StudentController::class, 'getSubjectClass']);
@@ -106,6 +105,8 @@ Route::middleware('auth:api', 'approved')->group(function () {
 
     // Shared routes
     Route::get('/user', function (Request $request) {
-        return $request->user()->load('roles');
+        $user = $request->user()->load('roles');
+        $user->avatar = Storage::disk('public')->url($user->avatar);
+        return $user->makeHidden(['created_at', 'updated_at', 'email_verified_at']);
     });
 });
