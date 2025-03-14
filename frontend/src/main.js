@@ -8,6 +8,9 @@ import App from './App.vue'
 import router from './router'
 import 'primeicons/primeicons.css';
 import Aura from '@primevue/themes/aura';
+import 'primevue/resources/themes/saga-blue/theme.css'; // Choose a theme
+import 'primevue/resources/primevue.min.css';
+import 'primeflex/primeflex.css';
 
 const app = createApp(App)
 

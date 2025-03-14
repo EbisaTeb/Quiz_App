@@ -10,6 +10,7 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\SubmissionController;
 use App\Http\Controllers\TeacherController;
+use App\Http\Controllers\DashboardController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +28,7 @@ Route::middleware('auth:api', 'approved')->group(function () {
     Route::middleware('role:admin')->group(function () {
 
         // User management
+        Route::get('/dashboard/statistics', [DashboardController::class, 'getStatistics']);
         Route::get('/admin/users', [AdminController::class, 'getAllUsers']);
         Route::get('/roles', [AdminController::class, 'getRoles']);
         Route::post('/users/{user}/roles', [AdminController::class, 'assignRole']);
