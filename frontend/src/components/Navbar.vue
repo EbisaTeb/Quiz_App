@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useAuthStore } from '@/stores/auth'; 
 import { useRouter } from 'vue-router';
 import Button from 'primevue/button';
@@ -27,6 +27,12 @@ function logout() {
     router.push({ name: 'login' });
   });
 }
+
+const user = ref({ ...authStore.user });
+
+watch(() => authStore.user, (newUser) => {
+    user.value = { ...newUser };
+});
 </script>
 
 <template>
@@ -50,11 +56,11 @@ function logout() {
       <template #value>
         <div class="flex items-center">
           <Avatar 
-            :image="authStore.user?.avatar ? `${authStore.user.avatar}?${Date.now()}` : 'https://randomuser.me/api/portraits/men/34.jpg'" 
+            :image="user.avatar ? `${user.avatar}?${Date.now()}` : 'https://randomuser.me/api/portraits/men/34.jpg'" 
             class="mr-2" 
             shape="circle" 
           />
-          <small>{{ authStore.user?.name }}</small>
+          <small>{{ user.name }}</small>
           <!-- <i class="pi pi-chevron-down ml-2"></i> -->
         </div>
       </template>

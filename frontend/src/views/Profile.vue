@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import axiosClient from '@/axios';
 import { useToast } from 'primevue/usetoast';
@@ -10,6 +10,7 @@ import FileUpload from 'primevue/fileupload';
 import Dialog from 'primevue/dialog';
 import Toast from 'primevue/toast';
 import ProgressSpinner from 'primevue/progressspinner';
+
 const authStore = useAuthStore();
 const toast = useToast();
 const user = ref({ ...authStore.user });
@@ -17,6 +18,10 @@ const passwordDialog = ref(false);
 const newPassword = ref('');
 const confirmPassword = ref('');
 const isUploading = ref(false);
+
+watch(() => authStore.user, (newUser) => {
+    user.value = { ...newUser };
+});
 
 function showSuccess(message) {
     toast.add({ severity: 'success', summary: 'Success', detail: message, life: 3000 });
@@ -77,7 +82,6 @@ async function updateAvatar(event) {
     } finally {
         isUploading.value = false;
     }
-
 }
 
 async function changePassword() {
@@ -100,7 +104,8 @@ async function changePassword() {
 
 async function updateName() {
     try {
-        await axiosClient.post('/user/update-name', { name: user.value.name });
+        const response = await axiosClient.post('/user/update-name', { name: user.value.name });
+        authStore.user.name = response.data.name; // Update the auth store
         showSuccess('Name updated successfully');
     } catch (error) {
         showError('Failed to update name');
@@ -113,47 +118,50 @@ async function updateName() {
         <h1>Profile</h1>
         <Toast />
         <div class="p-fluid grid gap-3">
+
             <div class="field col-12">
-                <label for="name">Name</label>
-                <InputText id="name" v-model="user.name" />
-                <Button label="Update Name" icon="pi pi-check" @click="updateName" />
-            </div>
-            <div class="field col-12">
-                <label for="email">Email</label>
+                <label class="pr-1" for="email">Email</label>
                 <InputText id="email" v-model="user.email" disabled />
             </div>
             <div class="field col-12">
-            <label for="avatar">Avatar</label>
-            <div class="flex align-items-center gap-3">
-                <img 
-                    :src="user.avatar" 
-                    alt="Avatar" 
-                    class="profile-avatar"
-                    style="width: 100px; height: 100px; object-fit: cover"
-                />
-                <FileUpload 
-                    name="avatar" 
-                    accept="image/*"
-                    :customUpload="true"
-                    :auto="false"
-                    @select="updateAvatar"
-                    :maxFileSize="2097152"
-                    :disabled="isUploading"
-                >
-                    <template #empty>
-                        <p>Drag and drop files to here to upload.</p>
-                    </template>
-                </FileUpload>
-                <ProgressSpinner v-if="isUploading" style="width: 30px; height: 30px"/>
+                <label for="avatar">Avatar</label>
+                <div class="flex align-items-center gap-3 mb-2">
+                    <img 
+                        :src="user.avatar" 
+                        alt="Avatar" 
+                        class="profile-avatar"
+                        style="width: 100px; height: 100px; object-fit: cover"
+                    />
+                    <FileUpload 
+                        name="avatar" 
+                        accept="image/*"
+                        :customUpload="true"
+                        :auto="false"
+                        @select="updateAvatar"
+                        :maxFileSize="2097152"
+                        :disabled="isUploading"
+                    >
+                        <template #empty>
+                            <p>Drag and drop files to here to upload.</p>
+                        </template>
+                    </FileUpload>
+                    <ProgressSpinner v-if="isUploading" style="width: 30px; height: 30px"/>
+                </div>
+                <div class="field col-12 ">
+                <label class="pr-1" for="name">Name</label>
+                <InputText class="mr-1"  id="name" v-model="user.name" />
+                <Button  label="Update Name" icon="pi pi-check" @click="updateName" />
             </div>
-        </div>
-            
+            </div>
+                <div class="field col-12">
+                 <Button label="Change Password" icon="pi pi-key" @click="passwordDialog = true" />
+             </div>
         </div>
 
         <Dialog v-model:visible="passwordDialog" header="Change Password" :modal="true" :style="{ width: '400px' }">
             <div class="p-fluid grid gap-3">
                 <div class="field col-12">
-                    <label for="newPassword">New Password</label>
+                    <label class="pr-10" for="newPassword">New Password</label>
                     <Password id="newPassword" v-model="newPassword" toggleMask />
                 </div>
                 <div class="field col-12">
