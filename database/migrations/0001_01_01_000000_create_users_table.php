@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('password');
             $table->boolean('is_approved')->default(false);
             $table->timestamp('approved_at')->nullable();
+            $table->string('avatar')->nullable();
             // $table->foreignId('approved_by')->nullable()->constrained('users')
             $table->rememberToken();
             $table->timestamps();

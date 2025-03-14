@@ -24,6 +24,12 @@ Route::middleware('auth:api', 'approved')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/submissions/{submission}', [SubmissionController::class, 'show']);
 
+    // User profile routes
+    Route::post('/user/avatar', [AuthController::class, 'updateAvatar']);
+    Route::post('/user/change-password', [AuthController::class, 'changePassword']);
+    Route::post('/user/update-name', [AuthController::class, 'updateName']);
+
+
     // Admin routes
     Route::middleware('role:admin')->group(function () {
 

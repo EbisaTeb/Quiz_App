@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class AuthController extends Controller
 {
@@ -93,5 +94,50 @@ class AuthController extends Controller
             \Log::error('Logout Error: ' . $e->getMessage());
             return response()->json(['error' => 'Server error during logout'], 500);
         }
+    }
+
+    public function updateAvatar(Request $request)
+    {
+        $request->validate([
+            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        $user = $request->user();
+        $avatarPath = $request->file('avatar')->store('avatars', 'public');
+
+        // Delete old avatar if exists
+        if ($user->avatar) {
+            Storage::disk('public')->delete($user->avatar);
+        }
+
+        $user->avatar = $avatarPath;
+        $user->save();
+
+        return response()->json(['avatar' => $avatarPath], 200);
+    }
+
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|min:6|confirmed',
+        ]);
+
+        $user = $request->user();
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return response()->json(['message' => 'Password changed successfully'], 200);
+    }
+    public function updateName(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $user = $request->user();
+        $user->name = $request->name;
+        $user->save();
+
+        return response()->json(['message' => 'Name updated successfully'], 200);
     }
 }
